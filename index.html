@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Авторские куклы на заказ</title>
+    <style>
+        /* Общие стили */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
+            background-color: #ffe6f2;
+            color: #5a2d4e;
+            overflow-x: hidden;
+        }
+
+        /* Анимации */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        /* Фон с размытым сердечком */
+        .background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path fill="%23ff99cc" d="M50,20 C60,10 75,10 85,20 C95,30 95,45 85,55 L50,90 L15,55 C5,45 5,30 15,20 C25,10 40,10 50,20 Z" /></svg>');
+            background-size: 200px;
+            opacity: 0.2;
+            filter: blur(5px);
+            z-index: -1;
+        }
+
+        /* Навигация */
+        .nav-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            cursor: pointer;
+            background-color: #ff66a3;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+        }
+
+        .nav-toggle:hover {
+            background-color: #ff3385;
+            animation: pulse 1s infinite;
+        }
+
+        .nav-toggle span {
+            display: block;
+            width: 6px;
+            height: 6px;
+            background-color: white;
+            border-radius: 50%;
+            margin: 2px;
+        }
+
+        .navigation {
+            position: fixed;
+            top: 0;
+            right: -300px;
+            width: 300px;
+            height: 100%;
+            background-color: rgba(255, 153, 204, 0.95);
+            z-index: 999;
+            transition: right 0.5s ease;
+            padding: 80px 20px 20px;
+            box-shadow: -5px 0 15px rgba(0,0,0,0.1);
+        }
+
+        .navigation.active {
+            right: 0;
+        }
+
+        .navigation ul {
+            list-style: none;
+        }
+
+        .navigation li {
+            margin-bottom: 15px;
+        }
+
+        .navigation a {
+            color: #5a2d4e;
+            text-decoration: none;
+            font-size: 18px;
+            display: block;
+            padding: 10px 15px;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .navigation a:hover {
+            background-color: #ff99cc;
+            color: white;
+            transform: translateX(5px);
+        }
+
+        /* Основной контент */
+        .content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        section {
+            display: none;
+            padding: 40px 20px;
+            animation: fadeIn 0.8s ease;
+        }
+
+        section.active {
+            display: block;
+        }
+
+        h1, h2, h3 {
+            color: #cc0066;
+            margin-bottom: 20px;
+            text-align: center;
+            animation: slideIn 0.8s ease;
+        }
+
+        p {
+            line-height: 1.6;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        /* Галерея */
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .photo-frame {
+            position: relative;
+            background-color: white;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            animation: slideIn 0.8s ease;
+        }
+
+        .photo-frame:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+        }
+
+        .photo-frame img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 5px;
+        }
+
+        /* Формы */
+        form {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #cc0066;
+            font-weight: bold;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid #ff99cc;
+            border-radius: 5px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #cc0066;
+            box-shadow: 0 0 5px rgba(204, 0, 102, 0.3);
+        }
+
+        button {
+            background-color: #ff66a3;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            display: block;
+            margin: 0 auto;
+        }
+
+        button:hover {
+            background-color: #cc0066;
+            transform: scale(1.05);
+        }
+
+        /* Корзина */
+        .cart-items {
+            margin-bottom: 30px;
+        }
+
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background-color: white;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .cart-total {
+            text-align: right;
+            font-size: 20px;
+            font-weight: bold;
+            margin-top: 20px;
+            color: #cc0066;
+        }
+
+        /* Комментарии */
+        .comments-section {
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 1px solid #ff99cc;
+        }
+
+        .comment {
+            background-color: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .comment-author {
+            font-weight: bold;
+            color: #cc0066;
+            margin-bottom: 5px;
+        }
+
+        /* Футер */
+        footer {
+            background-color: #ff99cc;
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+            margin-top: 50px;
+        }
+
+        .contact-info {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .contact-item {
+            margin: 10px 20px;
+        }
+
+        .social-links {
+            margin-top: 20px;
+        }
+
+        .social-links a {
+            color: white;
+            font-size: 24px;
+            margin: 0 10px;
+            transition: all 0.3s ease;
+        }
+
+        .social-links a:hover {
+            color: #cc0066;
+            transform: scale(1.2);
+        }
+
+        /* Адаптивность */
+        @media (max-width: 768px) {
+            .gallery {
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            }
+            
+            .contact-info {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="background"></div>
+    
+    <!-- Навигация -->
+    <div class="nav-toggle" id="navToggle">
+        <span></span>
+        <span></span>
+        <span></span>
+    </div>
+    
+    <nav class="navigation" id="navigation">
+        <ul>
+            <li><a href="#" data-section="home">Главная</a></li>
+            <li><a href="#" data-section="about">О нас</a></li>
+            <li><a href="#" data-section="gallery">Галерея</a></li>
+            <li><a href="#" data-section="order">Заказ</a></li>
+            <li><a href="#" data-section="cart">Корзина</a></li>
+        </ul>
+    </nav>
+    
+    <!-- Основной контент -->
+    <div class="content">
+        <!-- Главная -->
+        <section id="home" class="active">
+            <h1>Авторские куклы на заказ</h1>
+            <p>Создаем уникальные куклы ручной работы, которые станут любимыми игрушками ваших детей или ценными коллекционными предметами.</p>
+            <p>Каждая кукла создается с любовью и вниманием к деталям, чтобы подарить радость и волшебство.</p>
+            <div style="text-align: center; margin-top: 30px;">
+                <button id="exploreBtn">Исследовать галерею</button>
+            </div>
+        </section>
+        
+        <!-- О нас -->
+        <section id="about">
+            <h2>О нас</h2>
+            <p>Мы - команда мастеров, создающих уникальные куклы на заказ уже более 5 лет. Наша миссия - дарить радость детям и взрослым через искусство создания кукол.</p>
+            <p>Каждая наша кукла - это произведение искусства, созданное с любовью и вниманием к деталям. Мы используем только качественные материалы и безопасные краски.</p>
+            <p>Наши куклы могут быть выполнены в различных стилях - от классических до современных, от реалистичных до фантазийных.</p>
+        </section>
+        
+        <!-- Галерея -->
+        <section id="gallery">
+            <h2>Галерея наших работ</h2>
+            <p>Здесь вы можете увидеть примеры наших работ. Каждая кукла уникальна и создается индивидуально под заказ.</p>
+            <div class="gallery">
+                <div class="photo-frame">
+                    <img src="https://via.placeholder.com/300x200/ff99cc/ffffff?text=Кукла+1" alt="Кукла 1">
+                </div>
+                <div class="photo-frame">
+                    <img src="https://via.placeholder.com/300x200/ff99cc/ffffff?text=Кукла+2" alt="Кукла 2">
+                </div>
+                <div class="photo-frame">
+                    <img src="https://via.placeholder.com/300x200/ff99cc/ffffff?text=Кукла+3" alt="Кукла 3">
+                </div>
+                <div class="photo-frame">
+                    <img src="https://via.placeholder.com/300x200/ff99cc/ffffff?text=Кукла+4" alt="Кукла 4">
+                </div>
+                <div class="photo-frame">
+                    <img src="https://via.placeholder.com/300x200/ff99cc/ffffff?text=Кукла+5" alt="Кукла 5">
+                </div>
+                <div class="photo-frame">
+                    <img src="https://via.placeholder.com/300x200/ff99cc/ffffff?text=Кукла+6" alt="Кукла 6">
+                </div>
+            </div>
+        </section>
+        
+        <!-- Заказ -->
+        <section id="order">
+            <h2>Оформить заказ</h2>
+            <p>Заполните форму ниже, чтобы оформить заказ на создание уникальной куклы. Мы свяжемся с вами для уточнения деталей.</p>
+            <form id="orderForm">
+                <div class="form-group">
+                    <label for="name">Ваше имя:</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="phone">Телефон:</label>
+                    <input type="tel" id="phone" name="phone" required>
+                </div>
+                <div class="form-group">
+                    <label for="dollType">Тип куклы:</label>
+                    <select id="dollType" name="dollType" required>
+                        <option value="">Выберите тип</option>
+                        <option value="classic">Классическая</option>
+                        <option value="fantasy">Фантазийная</option>
+                        <option value="character">Персонаж</option>
+                        <option value="custom">Индивидуальный дизайн</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="description">Описание заказа:</label>
+                    <textarea id="description" name="description" rows="5" required></textarea>
+                </div>
+                <button type="submit">Отправить заказ</button>
+            </form>
+        </section>
+        
+        <!-- Корзина -->
+        <section id="cart">
+            <h2>Корзина заказов</h2>
+            <div class="cart-items">
+                <!-- Здесь будут элементы корзины -->
+            </div>
+            <div class="cart-total">
+                Итого: <span id="totalPrice">0</span> руб.
+            </div>
+            <button id="checkoutBtn" style="margin-top: 20px;">Оформить заказ</button>
+        </section>
+        
+        <!-- Комментарии -->
+        <div class="comments-section">
+            <h3>Отзывы наших клиентов</h3>
+            <div id="commentsList">
+                <!-- Здесь будут комментарии -->
+            </div>
+            <form id="commentForm" style="margin-top: 20px;">
+                <div class="form-group">
+                    <label for="commentName">Ваше имя:</label>
+                    <input type="text" id="commentName" name="commentName" required>
+                </div>
+                <div class="form-group">
+                    <label for="commentText">Ваш отзыв:</label>
+                    <textarea id="commentText" name="commentText" rows="3" required></textarea>
+                </div>
+                <button type="submit">Добавить отзыв</button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Футер -->
+    <footer>
+        <div class="contact-info">
+            <div class="contact-item">
+                <h3>Телефон</h3>
+                <p>+7 (999) 123-45-67</p>
+            </div>
+            <div class="contact-item">
+                <h3>Email</h3>
+                <p>dolls@example.com</p>
+            </div>
+            <div class="contact-item">
+                <h3>Адрес</h3>
+                <p>г. Москва, ул. Кукольная, д. 1</p>
+            </div>
+        </div>
+        <div class="social-links">
+            <a href="#">VK</a>
+            <a href="#">Instagram</a>
+            <a href="#">Facebook</a>
+        </div>
+        <p>&copy; 2023 Авторские куклы на заказ. Все права защищены.</p>
+    </footer>
+
+    <script>
+        // Навигация
+        document.getElementById('navToggle').addEventListener('click', function() {
+            document.getElementById('navigation').classList.toggle('active');
+        });
+
+        // Переключение разделов
+        document.querySelectorAll('.navigation a').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const sectionId = this.getAttribute('data-section');
+                
+                // Скрыть все разделы
+                document.querySelectorAll('section').forEach(section => {
+                    section.classList.remove('active');
+                });
+                
+                // Показать выбранный раздел
+                document.getElementById(sectionId).classList.add('active');
+                
+                // Закрыть навигацию
+                document.getElementById('navigation').classList.remove('active');
+            });
+        });
+
+        // Кнопка "Исследовать галерею"
+        document.getElementById('exploreBtn').addEventListener('click', function() {
+            document.querySelectorAll('section').forEach(section => {
+                section.classList.remove('active');
+            });
+            document.getElementById('gallery').classList.add('active');
+        });
+
+        // Форма заказа
+        document.getElementById('orderForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Ваш заказ отправлен! Мы свяжемся с вами в ближайшее время.');
+            this.reset();
+        });
+
+        // Форма комментариев
+        document.getElementById('commentForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const name = document.getElementById('commentName').value;
+            const text = document.getElementById('commentText').value;
+            
+            if (name && text) {
+                const commentDiv = document.createElement('div');
+                commentDiv.className = 'comment';
+                commentDiv.innerHTML = `
+                    <div class="comment-author">${name}</div>
+                    <div class="comment-text">${text}</div>
+                `;
+                
+                document.getElementById('commentsList').prepend(commentDiv);
+                this.reset();
+            }
+        });
+
+        // Корзина (упрощенная версия)
+        document.getElementById('checkoutBtn').addEventListener('click', function() {
+            alert('Заказ оформлен! Мы свяжемся с вами для подтверждения.');
+        });
+    </script>
+</body>
+</html>
