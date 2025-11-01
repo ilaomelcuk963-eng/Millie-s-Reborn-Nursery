@@ -324,7 +324,7 @@
             .gallery {
                 grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
             }
-            
+
             .contact-info {
                 flex-direction: column;
                 align-items: center;
@@ -334,14 +334,14 @@
 </head>
 <body>
     <div class="background"></div>
-    
+
     <!-- Навигация -->
     <div class="nav-toggle" id="navToggle">
         <span></span>
         <span></span>
         <span></span>
     </div>
-    
+
     <nav class="navigation" id="navigation">
         <ul>
             <li><a href="#" data-section="home">Главная</a></li>
@@ -351,7 +351,7 @@
             <li><a href="#" data-section="cart">Корзина</a></li>
         </ul>
     </nav>
-    
+
     <!-- Основной контент -->
     <div class="content">
         <!-- Главная -->
@@ -363,7 +363,7 @@
                 <button id="exploreBtn">Исследовать галерею</button>
             </div>
         </section>
-        
+
         <!-- О нас -->
         <section id="about">
             <h2>О нас</h2>
@@ -371,7 +371,7 @@
             <p>Каждая наша кукла - это произведение искусства, созданное с любовью и вниманием к деталям. Мы используем только качественные материалы и безопасные краски.</p>
             <p>Наши куклы могут быть выполнены в различных стилях - от классических до современных, от реалистичных до фантазийных.</p>
         </section>
-        
+
         <!-- Галерея -->
         <section id="gallery">
             <h2>Галерея куклочек</h2>
@@ -397,7 +397,7 @@
                 </div>
             </div>
         </section>
-        
+
         <!-- Заказ -->
         <section id="order">
             <h2>Оформить заказ</h2>
@@ -432,7 +432,7 @@
                 <button type="submit">Отправить заказ</button>
             </form>
         </section>
-        
+
         <!-- Корзина -->
         <section id="cart">
             <h2>Корзина заказов</h2>
@@ -444,7 +444,7 @@
             </div>
             <button id="checkoutBtn" style="margin-top: 20px;">Оформить заказ</button>
         </section>
-        
+
         <!-- Комментарии -->
         <div class="comments-section">
             <h3>Отзывы наших клиентов</h3>
@@ -464,7 +464,7 @@
             </form>
         </div>
     </div>
-    
+
     <!-- Футер -->
     <footer>
         <div class="contact-info">
@@ -489,148 +489,68 @@
     </footer>
 
     <script>
-    // Навигация
-    document.getElementById('navToggle').addEventListener('click', function() {
-        document.getElementById('navigation').classList.toggle('active');
-    });
+        // Навигация
+        document.getElementById('navToggle').addEventListener('click', function() {
+            document.getElementById('navigation').classList.toggle('active');
+        });
 
-    // Переключение разделов
-    document.querySelectorAll('.navigation a').forEach(link => {
-        link.addEventListener('click', function(e) {
-            e.preventDefault();
-            const sectionId = this.getAttribute('data-section');
+        // Переключение разделов
+        document.querySelectorAll('.navigation a').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const sectionId = this.getAttribute('data-section');
 
-            // Скрыть все разделы
+                // Скрыть все разделы
+                document.querySelectorAll('section').forEach(section => {
+                    section.classList.remove('active');
+                });
+
+                // Показать выбранный раздел
+                document.getElementById(sectionId).classList.add('active');
+
+                // Закрыть навигацию
+                document.getElementById('navigation').classList.remove('active');
+            });
+        });
+
+        // Кнопка "Исследовать галерею"
+        document.getElementById('exploreBtn').addEventListener('click', function() {
             document.querySelectorAll('section').forEach(section => {
                 section.classList.remove('active');
             });
-
-            // Показать выбранный раздел
-            document.getElementById(sectionId).classList.add('active');
-
-            // Закрыть навигацию
-            document.getElementById('navigation').classList.remove('active');
+            document.getElementById('gallery').classList.add('active');
         });
-    });
 
-    // Кнопка "Исследовать галерею"
-    document.getElementById('exploreBtn').addEventListener('click', function() {
-        document.querySelectorAll('section').forEach(section => {
-            section.classList.remove('active');
+        // Форма заказа
+        document.getElementById('orderForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Ваш заказ отправлен! Мы свяжемся с вами в ближайшее время.');
+            this.reset();
         });
-        document.getElementById('gallery').classList.add('active');
-    });
 
-    // Форма заказа
-    document.getElementById('orderForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        const formData = new FormData(this);
-        const orderData = {
-            name: formData.get('name'),
-            email: formData.get('email'),
-            phone: formData.get('phone'),
-            dollType: formData.get('dollType'),
-            description: formData.get('description')
-        };
-        
-        // Отправка данных на сервер Python
-        fetch('/submit_order', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(orderData)
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert(`Ваш заказ №${data.order_id} отправлен! Мы свяжемся с вами в ближайшее время.`);
-                this.reset();
-            } else {
-                alert('Произошла ошибка при отправке заказа. Пожалуйста, попробуйте позже.');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Произошла ошибка при отправке заказа. Пожалуйста, попробуйте позже.');
-        });
-    });
+        // Форма комментариев
+        document.getElementById('commentForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const name = document.getElementById('commentName').value;
+            const text = document.getElementById('commentText').value;
 
-    // Форма комментариев
-    document.getElementById('commentForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        const commentData = {
-            name: document.getElementById('commentName').value,
-            text: document.getElementById('commentText').value
-        };
-        
-        // Отправка комментария на сервер Python
-        fetch('/submit_comment', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(commentData)
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Добавление комментария в список
-                addCommentToDOM(commentData.name, commentData.text);
-                this.reset();
-                alert('Ваш отзыв добавлен!');
-            } else {
-                alert('Произошла ошибка при отправке комментария. Пожалуйста, попробуйте позже.');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Произошла ошибка при отправке комментария. Пожалуйста, попробуйте позже.');
-        });
-    });
-
-    // Функция для добавления комментария в DOM
-    function addCommentToDOM(name, text) {
-        const commentDiv = document.createElement('div');
-        commentDiv.className = 'comment';
-        commentDiv.innerHTML = `
-            <div class="comment-author">${name}</div>
-            <div class="comment-text">${text}</div>
-            <div class="comment-date">${new Date().toLocaleDateString('ru-RU')}</div>
-        `;
-        
-        document.getElementById('commentsList').prepend(commentDiv);
-    }
-
-    // Загрузка комментариев при загрузке страницы
-    document.addEventListener('DOMContentLoaded', function() {
-        fetch('/get_comments')
-        .then(response => response.json())
-        .then(comments => {
-            const commentsList = document.getElementById('commentsList');
-            comments.forEach(comment => {
+            if (name && text) {
                 const commentDiv = document.createElement('div');
                 commentDiv.className = 'comment';
                 commentDiv.innerHTML = `
-                    <div class="comment-author">${comment.name}</div>
-                    <div class="comment-text">${comment.text}</div>
-                    <div class="comment-date">${comment.date}</div>
+                    <div class="comment-author">${name}</div>
+                    <div class="comment-text">${text}</div>
                 `;
-                commentsList.appendChild(commentDiv);
-            });
-        })
-        .catch(error => {
-            console.error('Error loading comments:', error);
+
+                document.getElementById('commentsList').prepend(commentDiv);
+                this.reset();
+            }
         });
-    });
 
-    // Корзина (упрощенная версия)
-    document.getElementById('checkoutBtn').addEventListener('click', function() {
-        alert('Заказ оформлен! Мы свяжемся с вами для подтверждения.');
-    });
-</script>
-
+        // Корзина (упрощенная версия)
+        document.getElementById('checkoutBtn').addEventListener('click', function() {
+            alert('Заказ оформлен! Мы свяжемся с вами для подтверждения.');
+        });
+    </script>
 </body>
 </html>
