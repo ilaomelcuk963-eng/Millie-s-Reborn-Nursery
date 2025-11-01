@@ -8,42 +8,42 @@ import os
 from datetime import datetime
 
 app = Flask(__name__)
-CORS(app)  # Разрешить запросы с других доменов
+CORS(app)
 
 # Настройки для отправки email
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
-EMAIL_USER = 'your_email@gmail.com'  # Замените на ваш email
+EMAIL_USER = 'your.email@gmail.com'  # Замените на ваш email
 EMAIL_PASSWORD = 'your_app_password'  # Замените на пароль приложения
 
-# Файл для хранения комментариев
-COMMENTS_FILE = 'comments.json'
+# Файл для хранения данных
+DATA_FILE = 'data.json'
 
-# Загрузка комментариев из файла
-def load_comments():
-    if os.path.exists(COMMENTS_FILE):
-        with open(COMMENTS_FILE, 'r', encoding='utf-8') as f:
-            return json.load(f)
-    return []
+def load_data():
+    """Загрузка данных из JSON файла"""
+    if os.path.exists(DATA_FILE):
+        try:
+            with open(DATA_FILE, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except:
+            return {"comments": [], "orders": []}
+    return {"comments": [], "orders": []}
 
-# Сохранение комментариев в файл
-def save_comments(comments):
-    with open(COMMENTS_FILE, 'w', encoding='utf-8') as f:
-        json.dump(comments, f, ensure_ascii=False, indent=2)
+def save_data(data):
+    """Сохранение данных в JSON файл"""
+    with open(DATA_FILE, 'w', encoding='utf-8') as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
 
-# Отправка email
 def send_email(subject, body, to_email):
+    """Отправка email через Gmail"""
     try:
-        # Создание сообщения
         msg = MimeMultipart()
         msg['From'] = EMAIL_USER
         msg['To'] = to_email
         msg['Subject'] = subject
         
-        # Добавление текста сообщения
         msg.attach(MimeText(body, 'plain', 'utf-8'))
         
-        # Отправка сообщения
         server = smtplib.SMTP(EMAIL_HOST, EMAIL_PORT)
         server.starttls()
         server.login(EMAIL_USER, EMAIL_PASSWORD)
@@ -53,120 +53,172 @@ def send_email(subject, body, to_email):
         
         return True
     except Exception as e:
-        print(f"Error sending email: {e}")
+        print(f"Ошибка отправки email: {e}")
         return False
 
-# Главная страница
 @app.route('/')
 def index():
     return render_template('index.html')
 
-# Получение комментариев
-@app.route('/get_comments', methods=['GET'])
+@app.route('/get_comments')
 def get_comments():
-    comments = load_comments()
-    return jsonify(comments)
+    """Получение всех комментариев"""
+    data = load_data()
+    return jsonify(data.get("comments", []))
 
-# Добавление комментария
 @app.route('/submit_comment', methods=['POST'])
 def submit_comment():
+    """Добавление нового комментария"""
     try:
-        data = request.json
-        name = data.get('name', 'Аноним')
-        text = data.get('text', '')
+        comment_data = request.json
+        name = comment_data.get('name', 'Аноним').strip()
+        text = comment_data.get('text', '').strip()
         
         if not text:
             return jsonify({'success': False, 'error': 'Текст комментария не может быть пустым'})
         
-        # Загрузка существующих комментариев
-        comments = load_comments()
+        data = load_data()
+        comments = data.get("comments", [])
         
-        # Добавление нового комментария
         new_comment = {
             'id': len(comments) + 1,
             'name': name,
             'text': text,
-            'date': datetime.now().strftime('%d.%m.%Y %H:%M')
+            'date': datetime.now().strftime('%d.%m.%Y %H:%M'),
+            'timestamp': datetime.now().isoformat()
         }
         
         comments.append(new_comment)
-        
-        # Сохранение комментариев
-        save_comments(comments)
+        data["comments"] = comments
+        save_data(data)
         
         return jsonify({'success': True})
-    
+        
     except Exception as e:
-        print(f"Error submitting comment: {e}")
+        print(f"Ошибка добавления комментария: {e}")
         return jsonify({'success': False, 'error': str(e)})
 
-# Обработка заказа
 @app.route('/submit_order', methods=['POST'])
 def submit_order():
+    """Обработка нового заказа"""
     try:
-        data = request.json
-        name = data.get('name', '')
-        email = data.get('email', '')
-        phone = data.get('phone', '')
-        doll_type = data.get('dollType', '')
-        description = data.get('description', '')
+        order_data = request.json
+        name = order_data.get('name', '').strip()
+        email = order_data.get('email', '').strip()
+        phone = order_data.get('phone', '').strip()
+        doll_type = order_data.get('dollType', '').strip()
+        description = order_data.get('description', '').strip()
         
-        # Проверка обязательных полей
-        if not name or not email or not phone or not doll_type or not description:
+        # Валидация данных
+        if not all([name, email, phone, doll_type, description]):
             return jsonify({'success': False, 'error': 'Все поля обязательны для заполнения'})
         
-        # Формирование текста заказа
-        order_text = f"""
-        Новый заказ куклы!
+        # Сохранение заказа в JSON
+        data = load_data()
+        orders = data.get("orders", [])
         
-        Имя: {name}
-        Email: {email}
-        Телефон: {phone}
-        Тип куклы: {doll_type}
-        Описание: {description}
+        new_order = {
+            'id': len(orders) + 1,
+            'name': name,
+            'email': email,
+            'phone': phone,
+            'doll_type': doll_type,
+            'description': description,
+            'date': datetime.now().strftime('%d.%m.%Y %H:%M'),
+            'timestamp': datetime.now().isoformat(),
+            'status': 'новый'
+        }
         
-        Дата заказа: {datetime.now().strftime('%d.%m.%Y %H:%M')}
-        """
+        orders.append(new_order)
+        data["orders"] = orders
+        save_data(data)
         
-        # Отправка email с заказом
-        email_sent = send_email(
-            subject='Новый заказ куклы',
-            body=order_text,
-            to_email=EMAIL_USER  # Отправка на email владельца
-        )
-        
-        # Также отправка подтверждения клиенту
-        if email_sent:
-            confirmation_text = f"""
-            Уважаемый(ая) {name},
+        # Отправка email владельцу (если настроены email параметры)
+        if EMAIL_USER != 'your.email@gmail.com' and EMAIL_PASSWORD != 'your_app_password':
+            order_text = f"""
+            НОВЫЙ ЗАКАЗ КУКЛЫ!
             
-            Благодарим вас за заказ куклы в нашем магазине!
+            Детали заказа:
+            • Имя: {name}
+            • Email: {email}
+            • Телефон: {phone}
+            • Тип куклы: {doll_type}
+            • Описание: {description}
             
-            Мы получили ваш заказ:
-            Тип куклы: {doll_type}
-            Описание: {description}
+            Дата заказа: {datetime.now().strftime('%d.%m.%Y в %H:%M')}
+            ID заказа: {new_order['id']}
             
-            В ближайшее время мы свяжемся с вами для уточнения деталей.
-            
-            С уважением,
-            Команда "Авторские куклы на заказ"
+            Не забудьте связаться с клиентом в ближайшее время!
             """
             
-            send_email(
-                subject='Подтверждение заказа куклы',
+            owner_email_sent = send_email(
+                subject=f'Новый заказ куклы №{new_order["id"]}',
+                body=order_text,
+                to_email=EMAIL_USER
+            )
+            
+            # Отправка подтверждения клиенту
+            confirmation_text = f"""
+            Уважаемый(ая) {name}!
+            
+            Благодарим Вас за заказ авторской куклы в нашей мастерской!
+            
+            Мы получили Ваш заказ:
+            • Тип куклы: {doll_type}
+            • Ваши пожелания: {description}
+            
+            Номер Вашего заказа: {new_order['id']}
+            
+            В течение 24 часов мы свяжемся с Вами для уточнения деталей 
+            и обсуждения сроков выполнения заказа.
+            
+            С уважением,
+            Мастерская авторских кукол
+            Телефон: +7 (999) 123-45-67
+            Email: dolls@example.com
+            """
+            
+            client_email_sent = send_email(
+                subject='Подтверждение заказа авторской куклы',
                 body=confirmation_text,
                 to_email=email
             )
+            
+            return jsonify({
+                'success': True, 
+                'order_id': new_order['id'],
+                'owner_email_sent': owner_email_sent,
+                'client_email_sent': client_email_sent
+            })
+        else:
+            return jsonify({
+                'success': True, 
+                'order_id': new_order['id'],
+                'message': 'Заказ сохранен. Настройте email для получения уведомлений.'
+            })
         
-        return jsonify({'success': True, 'email_sent': email_sent})
-    
     except Exception as e:
-        print(f"Error submitting order: {e}")
+        print(f"Ошибка обработки заказа: {e}")
         return jsonify({'success': False, 'error': str(e)})
 
+@app.route('/get_orders')
+def get_orders():
+    """Получение списка заказов (для админки)"""
+    data = load_data()
+    return jsonify(data.get("orders", []))
+
 if __name__ == '__main__':
-    # Создание файла для комментариев, если его нет
-    if not os.path.exists(COMMENTS_FILE):
-        save_comments([])
+    # Создаем начальную структуру данных, если файла нет
+    if not os.path.exists(DATA_FILE):
+        save_data({"comments": [], "orders": []})
+    
+    print("Сервер запускается...")
+    print("Доступные эндпоинты:")
+    print("- GET  / - главная страница")
+    print("- GET  /get_comments - получение комментариев")
+    print("- POST /submit_comment - добавление комментария")
+    print("- POST /submit_order - оформление заказа")
+    print("- GET  /get_orders - получение заказов (админка)")
+    print("\nОткройте в браузере: http://localhost:5000")
     
     app.run(debug=True, host='0.0.0.0', port=5000)
