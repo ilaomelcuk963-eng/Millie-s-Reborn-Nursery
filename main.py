@@ -13,8 +13,8 @@ CORS(app)
 # Настройки для отправки email
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
-EMAIL_USER = 'your.email@gmail.com'  # Замените на ваш email
-EMAIL_PASSWORD = 'your_app_password'  # Замените на пароль приложения
+EMAIL_USER = 'ilaomelcuk963@gmail.com'  # Замените на ваш email
+EMAIL_PASSWORD = 'ilaomel2011'  # Замените на пароль приложения
 
 # Файл для хранения данных
 DATA_FILE = 'data.json'
