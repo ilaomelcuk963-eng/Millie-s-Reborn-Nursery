@@ -35,8 +35,10 @@ def save_data(data):
     try:
         with open(DATA_FILE, 'w', encoding='utf-8') as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
+        return True
     except Exception as e:
         print(f"Ошибка сохранения данных: {e}")
+        return False
 
 def send_email(subject, body, to_email):
     """Отправка email через Gmail"""
@@ -99,10 +101,12 @@ def submit_comment():
 
         comments.append(new_comment)
         data["comments"] = comments
-        save_data(data)
-
-        print(f"Добавлен новый комментарий от {name}")
-        return jsonify({'success': True})
+        
+        if save_data(data):
+            print(f"Добавлен новый комментарий от {name}")
+            return jsonify({'success': True})
+        else:
+            return jsonify({'success': False, 'error': 'Ошибка сохранения данных'})
 
     except Exception as e:
         print(f"Ошибка добавления комментария: {e}")
@@ -141,7 +145,9 @@ def submit_order():
 
         orders.append(new_order)
         data["orders"] = orders
-        save_data(data)
+        
+        if not save_data(data):
+            return jsonify({'success': False, 'error': 'Ошибка сохранения заказа'})
 
         # Отправка email владельцу
         order_text = f"""
@@ -206,15 +212,69 @@ Instagram: @millie_reborn_ua
 
 @app.route('/get_orders')
 def get_orders():
-    """Получение списка заказов (для админки)"""
-    data = load_data()
-    return jsonify(data.get("orders", []))
+    """Получение списка заказов"""
+    try:
+        data = load_data()
+        return jsonify(data.get("orders", []))
+    except Exception as e:
+        print(f"Ошибка получения заказов: {e}")
+        return jsonify([])
+
+@app.route('/delete_comment', methods=['POST'])
+def delete_comment():
+    """Удаление комментария"""
+    try:
+        comment_data = request.json
+        comment_id = comment_data.get('id')
+        
+        if not comment_id:
+            return jsonify({'success': False, 'error': 'ID комментария не указан'})
+
+        data = load_data()
+        comments = data.get("comments", [])
+        
+        # Фильтруем комментарии, удаляя указанный
+        initial_count = len(comments)
+        comments = [c for c in comments if c['id'] != comment_id]
+        
+        if len(comments) == initial_count:
+            return jsonify({'success': False, 'error': 'Комментарий не найден'})
+            
+        data["comments"] = comments
+        
+        if save_data(data):
+            return jsonify({'success': True})
+        else:
+            return jsonify({'success': False, 'error': 'Ошибка сохранения данных'})
+            
+    except Exception as e:
+        print(f"Ошибка удаления комментария: {e}")
+        return jsonify({'success': False, 'error': str(e)})
 
 if __name__ == '__main__':
     # Создаем начальную структуру данных, если файла нет
     if not os.path.exists(DATA_FILE):
-        save_data({"comments": [], "orders": []})
-        print("Создан новый файл data.json")
+        initial_data = {
+            "comments": [
+                {
+                    "id": 1,
+                    "name": "Мария",
+                    "text": "Заказывала куклу для дочки, остались очень довольны! Качество превосходное, дочка в восторге.",
+                    "date": "15.11.2023 14:30",
+                    "timestamp": "2023-11-15T14:30:00"
+                },
+                {
+                    "id": 2,
+                    "name": "Анна",
+                    "text": "Прекрасная работа! Кукла выполнена очень аккуратно, все детали проработаны. Спасибо большое!",
+                    "date": "20.11.2023 10:15",
+                    "timestamp": "2023-11-20T10:15:00"
+                }
+            ],
+            "orders": []
+        }
+        save_data(initial_data)
+        print("Создан новый файл data.json с начальными данными")
 
     print("Сервер запускается...")
     print("Доступные эндпоинты:")
@@ -222,7 +282,8 @@ if __name__ == '__main__':
     print("- GET  /get_comments - получение комментариев")
     print("- POST /submit_comment - добавление комментария")
     print("- POST /submit_order - оформление заказа")
-    print("- GET  /get_orders - получение заказов (админка)")
+    print("- GET  /get_orders - получение заказов")
+    print("- POST /delete_comment - удаление комментария")
     print(f"\nОткройте в браузере: http://localhost:5000")
     print("Для остановки сервера нажмите Ctrl+C")
 
