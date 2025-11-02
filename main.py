@@ -276,15 +276,23 @@ if __name__ == '__main__':
         save_data(initial_data)
         print("Создан новый файл data.json с начальными данными")
 
+    # Получаем IP-адрес для доступа с других устройств
+    import socket
+    hostname = socket.gethostname()
+    local_ip = socket.gethostbyname(hostname)
+    
     print("Сервер запускается...")
-    print("Доступные эндпоинты:")
+    print("Доступные адреса:")
+    print(f"- Локальный: http://localhost:5000")
+    print(f"- Сети: http://{local_ip}:5000")
+    print("\nДоступные эндпоинты:")
     print("- GET  / - главная страница")
     print("- GET  /get_comments - получение комментариев")
     print("- POST /submit_comment - добавление комментария")
     print("- POST /submit_order - оформление заказа")
     print("- GET  /get_orders - получение заказов")
     print("- POST /delete_comment - удаление комментария")
-    print(f"\nОткройте в браузере: http://localhost:5000")
-    print("Для остановки сервера нажмите Ctrl+C")
+    print("\nДля остановки сервера нажмите Ctrl+C")
 
+    # Запускаем сервер на всех интерфейсах
     app.run(debug=True, host='0.0.0.0', port=5000)
