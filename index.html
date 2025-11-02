@@ -627,6 +627,21 @@
     </footer>
 
   <script>
+    // Автоматическое определение адреса сервера
+    function getServerBase() {
+        // Если мы на localhost, используем localhost:5000
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            return 'http://localhost:5000';
+        }
+        // Иначе используем текущий хост с портом 5000
+        // Замените 'your-computer-ip' на реальный IP вашего компьютера
+        return 'http://YOUR-COMPUTER-IP:5000'; // ЗАМЕНИТЕ НА РЕАЛЬНЫЙ IP
+    }
+    
+    const API_BASE = getServerBase();
+    
+    console.log('Using API base:', API_BASE);
+
     // Базовый URL для API (измените на ваш, если размещаете на другом сервере)
     const API_BASE = 'http://localhost:5000';
     
