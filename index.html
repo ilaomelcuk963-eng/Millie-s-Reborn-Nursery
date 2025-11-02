@@ -626,159 +626,164 @@
         </div>
     </footer>
 
-    <script>
-        // Навигация
-        document.getElementById('navToggle').addEventListener('click', function() {
-            document.getElementById('navigation').classList.toggle('active');
-        });
+  <script>
+    // Базовый URL для API (измените на ваш, если размещаете на другом сервере)
+    const API_BASE = 'http://localhost:5000';
+    
+    // Навигация
+    document.getElementById('navToggle').addEventListener('click', function() {
+        document.getElementById('navigation').classList.toggle('active');
+    });
 
-        // Переключение разделов
-        document.querySelectorAll('.navigation a').forEach(link => {
-            link.addEventListener('click', function(e) {
-                e.preventDefault();
-                const sectionId = this.getAttribute('data-section');
+    // Переключение разделов
+    document.querySelectorAll('.navigation a').forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const sectionId = this.getAttribute('data-section');
 
-                // Скрыть все разделы
-                document.querySelectorAll('section').forEach(section => {
-                    section.classList.remove('active');
-                });
-
-                // Показать выбранный раздел
-                document.getElementById(sectionId).classList.add('active');
-
-                // Закрыть навигацию
-                document.getElementById('navigation').classList.remove('active');
-                
-                // Если открываем админ-панель, проверяем авторизацию
-                if (sectionId === 'admin') {
-                    checkAdminAuth();
-                }
-            });
-        });
-
-        // Кнопка "Исследовать галерею"
-        document.getElementById('exploreBtn').addEventListener('click', function() {
+            // Скрыть все разделы
             document.querySelectorAll('section').forEach(section => {
                 section.classList.remove('active');
             });
-            document.getElementById('gallery').classList.add('active');
+
+            // Показать выбранный раздел
+            document.getElementById(sectionId).classList.add('active');
+
+            // Закрыть навигацию
+            document.getElementById('navigation').classList.remove('active');
+            
+            // Если открываем админ-панель, проверяем авторизацию
+            if (sectionId === 'admin') {
+                checkAdminAuth();
+            }
         });
+    });
 
-        // Форма заказа
-        document.getElementById('orderForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const formData = new FormData(this);
-            const orderData = {
-                name: formData.get('name'),
-                email: formData.get('email'),
-                phone: formData.get('phone'),
-                dollType: formData.get('dollType'),
-                description: formData.get('description'),
-                date: new Date().toLocaleDateString('ru-RU')
-            };
-            
-            // Сохраняем заказ в localStorage
-            saveOrder(orderData);
-            
-            alert('Ваш заказ отправлен! Мы свяжемся с вами в ближайшее время.');
-            this.reset();
+    // Кнопка "Исследовать галерею"
+    document.getElementById('exploreBtn').addEventListener('click', function() {
+        document.querySelectorAll('section').forEach(section => {
+            section.classList.remove('active');
         });
+        document.getElementById('gallery').classList.add('active');
+    });
 
-        // Форма комментариев
-        document.getElementById('commentForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const name = document.getElementById('commentName').value;
-            const text = document.getElementById('commentText').value;
+    // Форма заказа
+    document.getElementById('orderForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        const orderData = {
+            name: formData.get('name'),
+            email: formData.get('email'),
+            phone: formData.get('phone'),
+            dollType: formData.get('dollType'),
+            description: formData.get('description')
+        };
+        
+        // Отправка данных на сервер Python
+        fetch(`${API_BASE}/submit_order`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(orderData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(`Ваш заказ №${data.order_id} отправлен! Мы свяжемся с вами в ближайшее время.`);
+                this.reset();
+            } else {
+                alert('Произошла ошибка при отправке заказа. Пожалуйста, попробуйте позже.');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Произошла ошибка при отправке заказа. Пожалуйста, попробуйте позже или свяжитесь с нами через социальные сети.');
+        });
+    });
 
-            if (name && text) {
-                // Сохраняем комментарий
-                saveComment(name, text);
-                
-                // Показываем комментарий
-                const commentDiv = document.createElement('div');
-                commentDiv.className = 'comment';
-                commentDiv.innerHTML = `
-                    <div class="comment-author">${name}</div>
-                    <div class="comment-text">${text}</div>
-                    <div class="comment-date">${new Date().toLocaleDateString('ru-RU')}</div>
-                `;
-
-                document.getElementById('commentsList').prepend(commentDiv);
+    // Форма комментариев
+    document.getElementById('commentForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const commentData = {
+            name: document.getElementById('commentName').value,
+            text: document.getElementById('commentText').value
+        };
+        
+        // Отправка комментария на сервер Python
+        fetch(`${API_BASE}/submit_comment`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(commentData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Перезагружаем комментарии
+                loadComments();
                 this.reset();
                 alert('Ваш отзыв добавлен!');
-            }
-        });
-
-        // Корзина (упрощенная версия)
-        document.getElementById('checkoutBtn').addEventListener('click', function() {
-            alert('Заказ оформлен! Мы свяжемся с вами для подтверждения.');
-        });
-
-        // Админ-панель
-        document.getElementById('loginBtn').addEventListener('click', function() {
-            const password = document.getElementById('adminPassword').value;
-            if (password === '1488') {
-                // Сохраняем статус авторизации
-                localStorage.setItem('adminAuthenticated', 'true');
-                showAdminPanel();
             } else {
-                alert('Неверный пароль!');
+                alert('Произошла ошибка при отправке комментария. Пожалуйста, попробуйте позже.');
             }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Произошла ошибка при отправке комментария. Пожалуйста, попробуйте позже.');
         });
+    });
 
-        document.getElementById('logoutBtn').addEventListener('click', function() {
-            localStorage.removeItem('adminAuthenticated');
+    // Админ-панель
+    document.getElementById('loginBtn').addEventListener('click', function() {
+        const password = document.getElementById('adminPassword').value;
+        if (password === '1488') {
+            // Сохраняем статус авторизации
+            localStorage.setItem('adminAuthenticated', 'true');
+            showAdminPanel();
+        } else {
+            alert('Неверный пароль!');
+        }
+    });
+
+    document.getElementById('logoutBtn').addEventListener('click', function() {
+        localStorage.removeItem('adminAuthenticated');
+        hideAdminPanel();
+    });
+
+    document.getElementById('refreshBtn').addEventListener('click', function() {
+        loadAdminData();
+    });
+
+    // Функции для работы с данными
+    function checkAdminAuth() {
+        if (localStorage.getItem('adminAuthenticated') === 'true') {
+            showAdminPanel();
+        } else {
             hideAdminPanel();
-        });
-
-        document.getElementById('refreshBtn').addEventListener('click', function() {
-            loadAdminData();
-        });
-
-        // Функции для работы с данными
-        function saveOrder(orderData) {
-            let orders = JSON.parse(localStorage.getItem('dollOrders') || '[]');
-            orderData.id = orders.length + 1;
-            orders.push(orderData);
-            localStorage.setItem('dollOrders', JSON.stringify(orders));
         }
+    }
 
-        function saveComment(name, text) {
-            let comments = JSON.parse(localStorage.getItem('dollComments') || '[]');
-            const newComment = {
-                id: comments.length + 1,
-                name: name,
-                text: text,
-                date: new Date().toLocaleDateString('ru-RU')
-            };
-            comments.unshift(newComment);
-            localStorage.setItem('dollComments', JSON.stringify(comments));
-        }
+    function showAdminPanel() {
+        document.getElementById('adminLogin').style.display = 'none';
+        document.getElementById('adminPanel').style.display = 'block';
+        loadAdminData();
+    }
 
-        function checkAdminAuth() {
-            if (localStorage.getItem('adminAuthenticated') === 'true') {
-                showAdminPanel();
-            } else {
-                hideAdminPanel();
-            }
-        }
+    function hideAdminPanel() {
+        document.getElementById('adminLogin').style.display = 'block';
+        document.getElementById('adminPanel').style.display = 'none';
+        document.getElementById('adminPassword').value = '';
+    }
 
-        function showAdminPanel() {
-            document.getElementById('adminLogin').style.display = 'none';
-            document.getElementById('adminPanel').style.display = 'block';
-            loadAdminData();
-        }
-
-        function hideAdminPanel() {
-            document.getElementById('adminLogin').style.display = 'block';
-            document.getElementById('adminPanel').style.display = 'none';
-            document.getElementById('adminPassword').value = '';
-        }
-
-        function loadAdminData() {
-            // Загрузка заказов
-            const orders = JSON.parse(localStorage.getItem('dollOrders') || '[]');
+    function loadAdminData() {
+        // Загрузка заказов
+        fetch(`${API_BASE}/get_orders`)
+        .then(response => response.json())
+        .then(orders => {
             const ordersTableBody = document.getElementById('ordersTableBody');
             ordersTableBody.innerHTML = '';
             
@@ -792,16 +797,23 @@
                         <td>${order.name}</td>
                         <td>${order.email}</td>
                         <td>${order.phone}</td>
-                        <td>${order.dollType}</td>
+                        <td>${order.doll_type}</td>
                         <td>${order.description}</td>
                         <td>${order.date}</td>
                     `;
                     ordersTableBody.appendChild(row);
                 });
             }
-            
-            // Загрузка комментариев
-            const comments = JSON.parse(localStorage.getItem('dollComments') || '[]');
+        })
+        .catch(error => {
+            console.error('Error loading orders:', error);
+            document.getElementById('ordersTableBody').innerHTML = '<tr><td colspan="7" style="text-align: center;">Ошибка загрузки заказов</td></tr>';
+        });
+        
+        // Загрузка комментариев
+        fetch(`${API_BASE}/get_comments`)
+        .then(response => response.json())
+        .then(comments => {
             const commentsTableBody = document.getElementById('commentsTableBody');
             commentsTableBody.innerHTML = '';
             
@@ -822,22 +834,42 @@
                     commentsTableBody.appendChild(row);
                 });
             }
-        }
+        })
+        .catch(error => {
+            console.error('Error loading comments:', error);
+            document.getElementById('commentsTableBody').innerHTML = '<tr><td colspan="5" style="text-align: center;">Ошибка загрузки комментариев</td></tr>';
+        });
+    }
 
-        function deleteComment(commentId) {
-            if (confirm('Вы уверены, что хотите удалить этот комментарий?')) {
-                let comments = JSON.parse(localStorage.getItem('dollComments') || '[]');
-                comments = comments.filter(comment => comment.id !== commentId);
-                localStorage.setItem('dollComments', JSON.stringify(comments));
-                loadAdminData();
-                
-                // Также обновляем комментарии на главной странице
-                loadComments();
-            }
+    function deleteComment(commentId) {
+        if (confirm('Вы уверены, что хотите удалить этот комментарий?')) {
+            fetch(`${API_BASE}/delete_comment`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({id: commentId})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    loadAdminData();
+                    loadComments();
+                } else {
+                    alert('Ошибка при удалении комментария');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Ошибка при удалении комментария');
+            });
         }
+    }
 
-        function loadComments() {
-            const comments = JSON.parse(localStorage.getItem('dollComments') || '[]');
+    function loadComments() {
+        fetch(`${API_BASE}/get_comments`)
+        .then(response => response.json())
+        .then(comments => {
             const commentsList = document.getElementById('commentsList');
             commentsList.innerHTML = '';
             
@@ -851,18 +883,28 @@
                 `;
                 commentsList.appendChild(commentDiv);
             });
-        }
-
-        // Загрузка комментариев при загрузке страницы
-        document.addEventListener('DOMContentLoaded', function() {
-            loadComments();
-            
-            // Проверяем авторизацию при загрузке
-            if (localStorage.getItem('adminAuthenticated') === 'true') {
-                showAdminPanel();
-            }
+        })
+        .catch(error => {
+            console.error('Error loading comments:', error);
         });
-    </script>
+    }
+
+    // Загрузка комментариев при загрузке страницы
+    document.addEventListener('DOMContentLoaded', function() {
+        loadComments();
+        
+        // Проверяем авторизацию при загрузке
+        if (localStorage.getItem('adminAuthenticated') === 'true') {
+            showAdminPanel();
+        }
+    });
+
+    // Корзина (упрощенная версия)
+    document.getElementById('checkoutBtn').addEventListener('click', function() {
+        alert('Заказ оформлен! Мы свяжемся с вами для подтверждения.');
+    });
+</script>
+
 </body>
 </html>
 ```
