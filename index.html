@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Millie's Reborn Nursery</title>
-    <link rel="shortcut icon" href="./free-icon-doll-8013731.png" type="image/x-icon">
+      <link rel="shortcut icon" href="./free-icon-doll-8013731.png" type="image/x-icon">
     <style>
         /* Общие стили */
         * {
@@ -283,68 +283,6 @@
             margin-bottom: 5px;
         }
 
-        /* Админ-панель */
-        .admin-panel {
-            background-color: white;
-            border-radius: 10px;
-            padding: 30px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            margin-top: 20px;
-        }
-
-        .admin-section {
-            margin-bottom: 30px;
-        }
-
-        .admin-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
-        }
-
-        .admin-table th, .admin-table td {
-            border: 1px solid #ff99cc;
-            padding: 10px;
-            text-align: left;
-        }
-
-        .admin-table th {
-            background-color: #ff99cc;
-            color: white;
-        }
-
-        .admin-table tr:nth-child(even) {
-            background-color: #ffe6f2;
-        }
-
-        .admin-login {
-            max-width: 400px;
-            margin: 50px auto;
-            background-color: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-
-        .admin-actions {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 20px;
-        }
-
-        .admin-actions button {
-            margin: 0 5px;
-            flex: 1;
-        }
-
-        .logout-btn {
-            background-color: #ff6666;
-        }
-
-        .logout-btn:hover {
-            background-color: #cc0000;
-        }
-
         /* Футер */
         footer {
             background-color: #ff99cc;
@@ -391,18 +329,6 @@
                 flex-direction: column;
                 align-items: center;
             }
-            
-            .admin-table {
-                font-size: 14px;
-            }
-            
-            .admin-actions {
-                flex-direction: column;
-            }
-            
-            .admin-actions button {
-                margin: 5px 0;
-            }
         }
     </style>
 </head>
@@ -423,7 +349,6 @@
             <li><a href="#" data-section="gallery">Галерея</a></li>
             <li><a href="#" data-section="order">Заказ</a></li>
             <li><a href="#" data-section="cart">Корзина</a></li>
-            <li><a href="#" data-section="admin">Админ-панель</a></li>
         </ul>
     </nav>
 
@@ -520,69 +445,6 @@
             <button id="checkoutBtn" style="margin-top: 20px;">Оформить заказ</button>
         </section>
 
-        <!-- Админ-панель -->
-        <section id="admin">
-            <h2>Админ-панель</h2>
-            
-            <div id="adminLogin" class="admin-login">
-                <h3>Вход в админ-панель</h3>
-                <div class="form-group">
-                    <label for="adminPassword">Пароль:</label>
-                    <input type="password" id="adminPassword" placeholder="Введите пароль" required>
-                </div>
-                <button id="loginBtn">Войти</button>
-            </div>
-            
-            <div id="adminPanel" class="admin-panel" style="display: none;">
-                <div class="admin-actions">
-                    <button id="refreshBtn">Обновить данные</button>
-                    <button id="logoutBtn" class="logout-btn">Выйти</button>
-                </div>
-                
-                <div class="admin-section">
-                    <h3>Заказы</h3>
-                    <div id="ordersList">
-                        <table class="admin-table">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Имя</th>
-                                    <th>Email</th>
-                                    <th>Телефон</th>
-                                    <th>Тип куклы</th>
-                                    <th>Описание</th>
-                                    <th>Дата</th>
-                                </tr>
-                            </thead>
-                            <tbody id="ordersTableBody">
-                                <!-- Данные заказов будут здесь -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                
-                <div class="admin-section">
-                    <h3>Комментарии</h3>
-                    <div id="commentsAdminList">
-                        <table class="admin-table">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Имя</th>
-                                    <th>Текст</th>
-                                    <th>Дата</th>
-                                    <th>Действия</th>
-                                </tr>
-                            </thead>
-                            <tbody id="commentsTableBody">
-                                <!-- Данные комментариев будут здесь -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </section>
-
         <!-- Комментарии -->
         <div class="comments-section">
             <h3>Отзывы наших клиентов</h3>
@@ -626,300 +488,69 @@
         </div>
     </footer>
 
-  <script>
-    // Автоматическое определение адреса сервера
-    function getServerBase() {
-        // Если мы на localhost, используем localhost:5000
-        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-            return 'http://localhost:5000';
-        }
-        // Иначе используем текущий хост с портом 5000
-        // Замените 'your-computer-ip' на реальный IP вашего компьютера
-        return 'http://YOUR-COMPUTER-IP:5000'; // ЗАМЕНИТЕ НА РЕАЛЬНЫЙ IP
-    }
-    
-    const API_BASE = getServerBase();
-    
-    console.log('Using API base:', API_BASE);
+    <script>
+        // Навигация
+        document.getElementById('navToggle').addEventListener('click', function() {
+            document.getElementById('navigation').classList.toggle('active');
+        });
 
-    // Базовый URL для API (измените на ваш, если размещаете на другом сервере)
-    const API_BASE = 'http://localhost:5000';
-    
-    // Навигация
-    document.getElementById('navToggle').addEventListener('click', function() {
-        document.getElementById('navigation').classList.toggle('active');
-    });
+        // Переключение разделов
+        document.querySelectorAll('.navigation a').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const sectionId = this.getAttribute('data-section');
 
-    // Переключение разделов
-    document.querySelectorAll('.navigation a').forEach(link => {
-        link.addEventListener('click', function(e) {
-            e.preventDefault();
-            const sectionId = this.getAttribute('data-section');
+                // Скрыть все разделы
+                document.querySelectorAll('section').forEach(section => {
+                    section.classList.remove('active');
+                });
 
-            // Скрыть все разделы
+                // Показать выбранный раздел
+                document.getElementById(sectionId).classList.add('active');
+
+                // Закрыть навигацию
+                document.getElementById('navigation').classList.remove('active');
+            });
+        });
+
+        // Кнопка "Исследовать галерею"
+        document.getElementById('exploreBtn').addEventListener('click', function() {
             document.querySelectorAll('section').forEach(section => {
                 section.classList.remove('active');
             });
-
-            // Показать выбранный раздел
-            document.getElementById(sectionId).classList.add('active');
-
-            // Закрыть навигацию
-            document.getElementById('navigation').classList.remove('active');
-            
-            // Если открываем админ-панель, проверяем авторизацию
-            if (sectionId === 'admin') {
-                checkAdminAuth();
-            }
+            document.getElementById('gallery').classList.add('active');
         });
-    });
 
-    // Кнопка "Исследовать галерею"
-    document.getElementById('exploreBtn').addEventListener('click', function() {
-        document.querySelectorAll('section').forEach(section => {
-            section.classList.remove('active');
+        // Форма заказа
+        document.getElementById('orderForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Ваш заказ отправлен! Мы свяжемся с вами в ближайшее время.');
+            this.reset();
         });
-        document.getElementById('gallery').classList.add('active');
-    });
 
-    // Форма заказа
-    document.getElementById('orderForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        const formData = new FormData(this);
-        const orderData = {
-            name: formData.get('name'),
-            email: formData.get('email'),
-            phone: formData.get('phone'),
-            dollType: formData.get('dollType'),
-            description: formData.get('description')
-        };
-        
-        // Отправка данных на сервер Python
-        fetch(`${API_BASE}/submit_order`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(orderData)
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert(`Ваш заказ №${data.order_id} отправлен! Мы свяжемся с вами в ближайшее время.`);
-                this.reset();
-            } else {
-                alert('Произошла ошибка при отправке заказа. Пожалуйста, попробуйте позже.');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Произошла ошибка при отправке заказа. Пожалуйста, попробуйте позже или свяжитесь с нами через социальные сети.');
-        });
-    });
+        // Форма комментариев
+        document.getElementById('commentForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const name = document.getElementById('commentName').value;
+            const text = document.getElementById('commentText').value;
 
-    // Форма комментариев
-    document.getElementById('commentForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        const commentData = {
-            name: document.getElementById('commentName').value,
-            text: document.getElementById('commentText').value
-        };
-        
-        // Отправка комментария на сервер Python
-        fetch(`${API_BASE}/submit_comment`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(commentData)
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Перезагружаем комментарии
-                loadComments();
-                this.reset();
-                alert('Ваш отзыв добавлен!');
-            } else {
-                alert('Произошла ошибка при отправке комментария. Пожалуйста, попробуйте позже.');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Произошла ошибка при отправке комментария. Пожалуйста, попробуйте позже.');
-        });
-    });
-
-    // Админ-панель
-    document.getElementById('loginBtn').addEventListener('click', function() {
-        const password = document.getElementById('adminPassword').value;
-        if (password === '1488') {
-            // Сохраняем статус авторизации
-            localStorage.setItem('adminAuthenticated', 'true');
-            showAdminPanel();
-        } else {
-            alert('Неверный пароль!');
-        }
-    });
-
-    document.getElementById('logoutBtn').addEventListener('click', function() {
-        localStorage.removeItem('adminAuthenticated');
-        hideAdminPanel();
-    });
-
-    document.getElementById('refreshBtn').addEventListener('click', function() {
-        loadAdminData();
-    });
-
-    // Функции для работы с данными
-    function checkAdminAuth() {
-        if (localStorage.getItem('adminAuthenticated') === 'true') {
-            showAdminPanel();
-        } else {
-            hideAdminPanel();
-        }
-    }
-
-    function showAdminPanel() {
-        document.getElementById('adminLogin').style.display = 'none';
-        document.getElementById('adminPanel').style.display = 'block';
-        loadAdminData();
-    }
-
-    function hideAdminPanel() {
-        document.getElementById('adminLogin').style.display = 'block';
-        document.getElementById('adminPanel').style.display = 'none';
-        document.getElementById('adminPassword').value = '';
-    }
-
-    function loadAdminData() {
-        // Загрузка заказов
-        fetch(`${API_BASE}/get_orders`)
-        .then(response => response.json())
-        .then(orders => {
-            const ordersTableBody = document.getElementById('ordersTableBody');
-            ordersTableBody.innerHTML = '';
-            
-            if (orders.length === 0) {
-                ordersTableBody.innerHTML = '<tr><td colspan="7" style="text-align: center;">Нет заказов</td></tr>';
-            } else {
-                orders.forEach(order => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${order.id}</td>
-                        <td>${order.name}</td>
-                        <td>${order.email}</td>
-                        <td>${order.phone}</td>
-                        <td>${order.doll_type}</td>
-                        <td>${order.description}</td>
-                        <td>${order.date}</td>
-                    `;
-                    ordersTableBody.appendChild(row);
-                });
-            }
-        })
-        .catch(error => {
-            console.error('Error loading orders:', error);
-            document.getElementById('ordersTableBody').innerHTML = '<tr><td colspan="7" style="text-align: center;">Ошибка загрузки заказов</td></tr>';
-        });
-        
-        // Загрузка комментариев
-        fetch(`${API_BASE}/get_comments`)
-        .then(response => response.json())
-        .then(comments => {
-            const commentsTableBody = document.getElementById('commentsTableBody');
-            commentsTableBody.innerHTML = '';
-            
-            if (comments.length === 0) {
-                commentsTableBody.innerHTML = '<tr><td colspan="5" style="text-align: center;">Нет комментариев</td></tr>';
-            } else {
-                comments.forEach(comment => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${comment.id}</td>
-                        <td>${comment.name}</td>
-                        <td>${comment.text}</td>
-                        <td>${comment.date}</td>
-                        <td>
-                            <button onclick="deleteComment(${comment.id})" style="background-color: #ff6666; padding: 5px 10px; font-size: 12px;">Удалить</button>
-                        </td>
-                    `;
-                    commentsTableBody.appendChild(row);
-                });
-            }
-        })
-        .catch(error => {
-            console.error('Error loading comments:', error);
-            document.getElementById('commentsTableBody').innerHTML = '<tr><td colspan="5" style="text-align: center;">Ошибка загрузки комментариев</td></tr>';
-        });
-    }
-
-    function deleteComment(commentId) {
-        if (confirm('Вы уверены, что хотите удалить этот комментарий?')) {
-            fetch(`${API_BASE}/delete_comment`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({id: commentId})
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    loadAdminData();
-                    loadComments();
-                } else {
-                    alert('Ошибка при удалении комментария');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Ошибка при удалении комментария');
-            });
-        }
-    }
-
-    function loadComments() {
-        fetch(`${API_BASE}/get_comments`)
-        .then(response => response.json())
-        .then(comments => {
-            const commentsList = document.getElementById('commentsList');
-            commentsList.innerHTML = '';
-            
-            comments.forEach(comment => {
+            if (name && text) {
                 const commentDiv = document.createElement('div');
                 commentDiv.className = 'comment';
                 commentDiv.innerHTML = `
-                    <div class="comment-author">${comment.name}</div>
-                    <div class="comment-text">${comment.text}</div>
-                    <div class="comment-date">${comment.date}</div>
+                    <div class="comment-author">${name}</div>
+                    <div class="comment-text">${text}</div>
                 `;
-                commentsList.appendChild(commentDiv);
-            });
-        })
-        .catch(error => {
-            console.error('Error loading comments:', error);
+
+                document.getElementById('commentsList').prepend(commentDiv);
+                this.reset();
+            }
         });
-    }
 
-    // Загрузка комментариев при загрузке страницы
-    document.addEventListener('DOMContentLoaded', function() {
-        loadComments();
-        
-        // Проверяем авторизацию при загрузке
-        if (localStorage.getItem('adminAuthenticated') === 'true') {
-            showAdminPanel();
-        }
-    });
-
-    // Корзина (упрощенная версия)
-    document.getElementById('checkoutBtn').addEventListener('click', function() {
-        alert('Заказ оформлен! Мы свяжемся с вами для подтверждения.');
-    });
-</script>
-
+        // Корзина (упрощенная версия)
+        document.getElementById('checkoutBtn').addEventListener('click', function() {
+            alert('Заказ оформлен! Мы свяжемся с вами для подтверждения.');
+        });
+    </script>
 </body>
 </html>
-```
