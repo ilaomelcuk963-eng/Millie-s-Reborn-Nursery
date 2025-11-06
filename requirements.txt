@@ -1,0 +1,5 @@
+```txt
+Flask==2.3.3
+Flask-CORS==4.0.0
+mega.py==1.0.8
+```
