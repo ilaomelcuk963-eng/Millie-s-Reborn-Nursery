@@ -876,6 +876,77 @@
             }
         });
     </script>
+    // Обновите статус Mega в реальном времени
+function updateMegaStatus() {
+    fetch(`${API_BASE}/status`)
+    .then(response => response.json())
+    .then(data => {
+        const megaStatus = document.getElementById('megaStatus');
+        if (data.mega_connected) {
+            megaStatus.innerHTML = '✅ Mega: Подключено | ' +
+                                 `💬 Комментарии: ${data.comments_count} | ` +
+                                 `📦 Заказы: ${data.orders_count}`;
+            megaStatus.style.backgroundColor = '#d4edda';
+            megaStatus.style.color = '#155724';
+            megaStatus.style.border = '2px solid #28a745';
+        } else {
+            megaStatus.innerHTML = '❌ Mega: Отключено | ' +
+                                 `💬 Комментарии: ${data.comments_count} | ` +
+                                 `📦 Заказы: ${data.orders_count}`;
+            megaStatus.style.backgroundColor = '#f8d7da';
+            megaStatus.style.color = '#721c24';
+            megaStatus.style.border = '2px solid #dc3545';
+        }
+    })
+    .catch(error => {
+        console.error('Status error:', error);
+    });
+}
+
+// Кнопка синхронизации с Mega
+document.getElementById('syncBtn').addEventListener('click', function() {
+    const syncStatus = document.getElementById('syncStatus');
+    syncStatus.style.display = 'block';
+    syncStatus.innerHTML = '<p>🔄 Синхронизация с Mega...</p>';
+    syncStatus.style.backgroundColor = '#fff3cd';
+    syncStatus.style.color = '#856404';
+    
+    fetch(`${API_BASE}/sync_data`)
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            syncStatus.innerHTML = '<p>✅ Данные успешно синхронизированы с Mega!</p>';
+            syncStatus.style.backgroundColor = '#d4edda';
+            syncStatus.style.color = '#155724';
+            // Обновляем статус после синхронизации
+            setTimeout(updateMegaStatus, 1000);
+        } else {
+            syncStatus.innerHTML = `<p>❌ Ошибка синхронизации: ${data.message}</p>`;
+            syncStatus.style.backgroundColor = '#f8d7da';
+            syncStatus.style.color = '#721c24';
+        }
+    })
+    .catch(error => {
+        console.error('Sync error:', error);
+        syncStatus.innerHTML = '<p>❌ Ошибка соединения с сервером</p>';
+        syncStatus.style.backgroundColor = '#f8d7da';
+        syncStatus.style.color = '#721c24';
+    });
+});
+
+// Кнопка статуса системы
+document.getElementById('statusBtn').addEventListener('click', function() {
+    updateMegaStatus();
+});
+
+// В функции showAdminPanel добавьте:
+function showAdminPanel() {
+    document.getElementById('adminLogin').style.display = 'none';
+    document.getElementById('adminPanel').style.display = 'block';
+    loadAdminData();
+    // Обновляем статус Mega при открытии админ-панели
+    setTimeout(updateMegaStatus, 500);
+}
 </body>
 </html>
 ```
