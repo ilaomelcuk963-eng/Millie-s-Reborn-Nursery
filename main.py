@@ -6,6 +6,7 @@ from email.mime.multipart import MimeMultipart
 import json
 import os
 from datetime import datetime
+from mega import Mega
 
 app = Flask(__name__)
 CORS(app)
@@ -16,28 +17,141 @@ EMAIL_PORT = 587
 EMAIL_USER = 'ilaomelcuk963@gmail.com'
 EMAIL_PASSWORD = 'ilaomel2011'
 
-# Файл для хранения данных
-DATA_FILE = 'data.json'
+# Настройки Mega - ВАШИ ДАННЫЕ
+MEGA_EMAIL = 'asuhop666@gmail.com'
+MEGA_PASSWORD = 'millie_13Dark20'
+
+# Локальный файл для кеширования
+LOCAL_DATA_FILE = 'data.json'
+
+class MegaStorage:
+    def __init__(self, email, password):
+        self.email = email
+        self.password = password
+        self.mega = Mega()
+        self.remote_filename = 'dolls_website_data.json'
+        
+    def login(self):
+        """Авторизация в Mega"""
+        try:
+            self.m = self.mega.login(self.email, self.password)
+            print("✅ Успешная авторизация в Mega")
+            return True
+        except Exception as e:
+            print(f"❌ Ошибка авторизации в Mega: {e}")
+            return False
+    
+    def upload_data(self, data):
+        """Загрузка данных в Mega"""
+        try:
+            # Сохраняем данные во временный файл
+            with open(LOCAL_DATA_FILE, 'w', encoding='utf-8') as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+            
+            # Загружаем файл в Mega
+            file = self.m.upload(LOCAL_DATA_FILE)
+            
+            # Переименовываем файл в Mega
+            if file:
+                self.m.rename(file, self.remote_filename)
+            
+            print("✅ Данные успешно загружены в Mega")
+            return True
+        except Exception as e:
+            print(f"❌ Ошибка загрузки в Mega: {e}")
+            return False
+    
+    def download_data(self):
+        """Скачивание данных из Mega"""
+        try:
+            # Ищем файл в Mega
+            files = self.m.find(self.remote_filename)
+            if files:
+                self.m.download(files, LOCAL_DATA_FILE)
+                print("✅ Данные успешно скачаны из Mega")
+                return True
+            else:
+                print("📝 Файл не найден в Mega, создаем новый")
+                return False
+        except Exception as e:
+            print(f"❌ Ошибка скачивания из Mega: {e}")
+            return False
+
+# Инициализация Mega
+print("🔄 Подключение к Mega...")
+mega_storage = MegaStorage(MEGA_EMAIL, MEGA_PASSWORD)
+mega_connected = mega_storage.login()
 
 def load_data():
-    """Загрузка данных из JSON файла"""
-    if os.path.exists(DATA_FILE):
-        try:
-            with open(DATA_FILE, 'r', encoding='utf-8') as f:
-                return json.load(f)
-        except Exception as e:
-            print(f"Ошибка загрузки данных: {e}")
-            return {"comments": [], "orders": []}
-    return {"comments": [], "orders": []}
+    """Загрузка данных из Mega или локального файла"""
+    try:
+        # Пытаемся скачать из Mega если подключены
+        if mega_connected:
+            if mega_storage.download_data():
+                # Если скачали успешно, читаем локальный файл
+                with open(LOCAL_DATA_FILE, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                    print(f"📊 Загружено из Mega: {len(data.get('comments', []))} комментариев, {len(data.get('orders', []))} заказов")
+                    return data
+            else:
+                # Если файла нет в Mega, создаем структуру по умолчанию
+                print("📝 Создаем новую структуру данных в Mega")
+                default_data = {
+                    "comments": [
+                        {
+                            "id": 1,
+                            "name": "Мария",
+                            "text": "Заказывала куклу для дочки, остались очень довольны! Качество превосходное, дочка в восторге.",
+                            "date": "15.11.2023 14:30",
+                            "timestamp": "2023-11-15T14:30:00"
+                        },
+                        {
+                            "id": 2,
+                            "name": "Анна", 
+                            "text": "Прекрасная работа! Кукла выполнена очень аккуратно, все детали проработаны. Спасибо большое!",
+                            "date": "20.11.2023 10:15",
+                            "timestamp": "2023-11-20T10:15:00"
+                        }
+                    ],
+                    "orders": []
+                }
+                mega_storage.upload_data(default_data)
+                return default_data
+        else:
+            # Если Mega не доступен, используем локальный файл
+            if os.path.exists(LOCAL_DATA_FILE):
+                with open(LOCAL_DATA_FILE, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                    print(f"📊 Загружено локально: {len(data.get('comments', []))} комментариев, {len(data.get('orders', []))} заказов")
+                    return data
+            else:
+                print("📝 Создаем новую локальную структуру данных")
+                return {"comments": [], "orders": []}
+                
+    except Exception as e:
+        print(f"❌ Ошибка загрузки данных: {e}")
+        return {"comments": [], "orders": []}
 
 def save_data(data):
-    """Сохранение данных в JSON файл"""
+    """Сохранение данных в Mega и локальный файл"""
     try:
-        with open(DATA_FILE, 'w', encoding='utf-8') as f:
+        # Всегда сохраняем локально
+        with open(LOCAL_DATA_FILE, 'w', encoding='utf-8') as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
+        
+        # Пытаемся загрузить в Mega если подключены
+        if mega_connected:
+            success = mega_storage.upload_data(data)
+            if success:
+                print("✅ Данные синхронизированы с Mega")
+            else:
+                print("⚠️ Данные сохранены локально, но не синхронизированы с Mega")
+        else:
+            print("💾 Данные сохранены локально (Mega не доступен)")
+            
         return True
     except Exception as e:
-        print(f"Ошибка сохранения данных: {e}")
+        print(f"❌ Ошибка сохранения данных: {e}")
         return False
 
 def send_email(subject, body, to_email):
@@ -57,10 +171,10 @@ def send_email(subject, body, to_email):
         server.sendmail(EMAIL_USER, to_email, text)
         server.quit()
         
-        print(f"Email отправлен на {to_email}")
+        print(f"📧 Email отправлен на {to_email}")
         return True
     except Exception as e:
-        print(f"Ошибка отправки email: {e}")
+        print(f"❌ Ошибка отправки email: {e}")
         return False
 
 @app.route('/')
@@ -74,7 +188,7 @@ def get_comments():
         data = load_data()
         return jsonify(data.get("comments", []))
     except Exception as e:
-        print(f"Ошибка получения комментариев: {e}")
+        print(f"❌ Ошибка получения комментариев: {e}")
         return jsonify([])
 
 @app.route('/submit_comment', methods=['POST'])
@@ -103,13 +217,13 @@ def submit_comment():
         data["comments"] = comments
         
         if save_data(data):
-            print(f"Добавлен новый комментарий от {name}")
+            print(f"💬 Добавлен новый комментарий от {name}")
             return jsonify({'success': True})
         else:
             return jsonify({'success': False, 'error': 'Ошибка сохранения данных'})
 
     except Exception as e:
-        print(f"Ошибка добавления комментария: {e}")
+        print(f"❌ Ошибка добавления комментария: {e}")
         return jsonify({'success': False, 'error': str(e)})
 
 @app.route('/submit_order', methods=['POST'])
@@ -127,7 +241,7 @@ def submit_order():
         if not all([name, email, phone, doll_type, description]):
             return jsonify({'success': False, 'error': 'Все поля обязательны для заполнения'})
 
-        # Сохранение заказа в JSON
+        # Сохранение заказа
         data = load_data()
         orders = data.get("orders", [])
 
@@ -203,11 +317,12 @@ Instagram: @millie_reborn_ua
             'success': True, 
             'order_id': new_order['id'],
             'owner_email_sent': owner_email_sent,
-            'client_email_sent': client_email_sent
+            'client_email_sent': client_email_sent,
+            'mega_sync': mega_connected
         })
 
     except Exception as e:
-        print(f"Ошибка обработки заказа: {e}")
+        print(f"❌ Ошибка обработки заказа: {e}")
         return jsonify({'success': False, 'error': str(e)})
 
 @app.route('/get_orders')
@@ -217,7 +332,7 @@ def get_orders():
         data = load_data()
         return jsonify(data.get("orders", []))
     except Exception as e:
-        print(f"Ошибка получения заказов: {e}")
+        print(f"❌ Ошибка получения заказов: {e}")
         return jsonify([])
 
 @app.route('/delete_comment', methods=['POST'])
@@ -243,56 +358,65 @@ def delete_comment():
         data["comments"] = comments
         
         if save_data(data):
+            print(f"🗑️ Удален комментарий ID: {comment_id}")
             return jsonify({'success': True})
         else:
             return jsonify({'success': False, 'error': 'Ошибка сохранения данных'})
             
     except Exception as e:
-        print(f"Ошибка удаления комментария: {e}")
+        print(f"❌ Ошибка удаления комментария: {e}")
         return jsonify({'success': False, 'error': str(e)})
 
+@app.route('/sync_data')
+def sync_data():
+    """Принудительная синхронизация с Mega"""
+    try:
+        if mega_connected:
+            data = load_data()
+            success = mega_storage.upload_data(data)
+            return jsonify({'success': success, 'message': 'Данные синхронизированы с Mega'})
+        else:
+            return jsonify({'success': False, 'message': 'Mega не доступен'})
+    except Exception as e:
+        return jsonify({'success': False, 'message': f'Ошибка синхронизации: {str(e)}'})
+
+@app.route('/status')
+def status():
+    """Статус системы"""
+    data = load_data()
+    return jsonify({
+        'mega_connected': mega_connected,
+        'comments_count': len(data.get('comments', [])),
+        'orders_count': len(data.get('orders', [])),
+        'local_file_exists': os.path.exists(LOCAL_DATA_FILE)
+    })
+
 if __name__ == '__main__':
-    # Создаем начальную структуру данных, если файла нет
-    if not os.path.exists(DATA_FILE):
-        initial_data = {
-            "comments": [
-                {
-                    "id": 1,
-                    "name": "Мария",
-                    "text": "Заказывала куклу для дочки, остались очень довольны! Качество превосходное, дочка в восторге.",
-                    "date": "15.11.2023 14:30",
-                    "timestamp": "2023-11-15T14:30:00"
-                },
-                {
-                    "id": 2,
-                    "name": "Анна",
-                    "text": "Прекрасная работа! Кукла выполнена очень аккуратно, все детали проработаны. Спасибо большое!",
-                    "date": "20.11.2023 10:15",
-                    "timestamp": "2023-11-20T10:15:00"
-                }
-            ],
-            "orders": []
-        }
-        save_data(initial_data)
-        print("Создан новый файл data.json с начальными данными")
-
-    # Получаем IP-адрес для доступа с других устройств
-    import socket
-    hostname = socket.gethostname()
-    local_ip = socket.gethostbyname(hostname)
+    # Инициализация данных при первом запуске
+    data = load_data()
     
-    print("Сервер запускается...")
-    print("Доступные адреса:")
-    print(f"- Локальный: http://localhost:5000")
-    print(f"- Сети: http://{local_ip}:5000")
-    print("\nДоступные эндпоинты:")
-    print("- GET  / - главная страница")
-    print("- GET  /get_comments - получение комментариев")
-    print("- POST /submit_comment - добавление комментария")
-    print("- POST /submit_order - оформление заказа")
-    print("- GET  /get_orders - получение заказов")
-    print("- POST /delete_comment - удаление комментария")
-    print("\nДля остановки сервера нажмите Ctrl+C")
+    print("\n" + "="*50)
+    print("🌟 Millie's Reborn Nursery Server")
+    print("="*50)
+    print(f"📊 Загружено данных:")
+    print(f"   • Комментарии: {len(data.get('comments', []))}")
+    print(f"   • Заказы: {len(data.get('orders', []))}")
+    print(f"🔗 Mega подключение: {'✅ Да' if mega_connected else '❌ Нет'}")
+    print(f"💾 Локальный файл: {'✅ Существует' if os.path.exists(LOCAL_DATA_FILE) else '❌ Отсутствует'}")
+    print("="*50)
 
-    # Запускаем сервер на всех интерфейсах
+    print("\n🚀 Сервер запускается...")
+    print("🌐 Доступные эндпоинты:")
+    print("   - GET  / - главная страница")
+    print("   - GET  /get_comments - получение комментариев")
+    print("   - POST /submit_comment - добавление комментария") 
+    print("   - POST /submit_order - оформление заказа")
+    print("   - GET  /get_orders - получение заказов")
+    print("   - POST /delete_comment - удаление комментария")
+    print("   - GET  /sync_data - принудительная синхронизация с Mega")
+    print("   - GET  /status - статус системы")
+    print(f"\n📱 Откройте в браузере: http://localhost:5000")
+    print("⏹️  Для остановки сервера нажмите Ctrl+C")
+    print("="*50)
+
     app.run(debug=True, host='0.0.0.0', port=5000)
