@@ -262,27 +262,6 @@
             color: #cc0066;
         }
 
-        /* Комментарии */
-        .comments-section {
-            margin-top: 50px;
-            padding-top: 30px;
-            border-top: 1px solid #ff99cc;
-        }
-
-        .comment {
-            background-color: white;
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 15px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-
-        .comment-author {
-            font-weight: bold;
-            color: #cc0066;
-            margin-bottom: 5px;
-        }
-
         /* Админ-панель */
         .admin-panel {
             background-color: white;
@@ -404,6 +383,59 @@
                 margin: 5px 0;
             }
         }
+
+        /* Новые стили для секции комментариев */
+        #comments-section {
+            background: linear-gradient(135deg, #fff5f9 0%, #ffe6f2 100%);
+            padding: 60px 20px;
+            margin-top: 50px;
+            scroll-margin-top: 80px;
+        }
+
+        .comment-card {
+            transition: transform 0.3s ease;
+        }
+
+        .comment-card:hover {
+            transform: translateY(-5px);
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Стили для уведомлений */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 10px;
+            color: white;
+            font-weight: bold;
+            z-index: 10000;
+            animation: slideInRight 0.3s ease;
+            max-width: 300px;
+        }
+
+        .notification.success {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+        }
+
+        .notification.error {
+            background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+        }
+
+        .notification.warning {
+            background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+        }
     </style>
 </head>
 <body>
@@ -424,6 +456,8 @@
             <li><a href="#" data-section="order">Заказ</a></li>
             <li><a href="#" data-section="cart">Корзина</a></li>
             <li><a href="#" data-section="admin">Админ-панель</a></li>
+            <!-- Новый пункт меню -->
+            <li><a href="#comments-section" onclick="scrollToComments()">Отзывы</a></li>
         </ul>
     </nav>
 
@@ -539,6 +573,23 @@
                     <button id="logoutBtn" class="logout-btn">Выйти</button>
                 </div>
                 
+                <!-- Статус Яндекс.Диска -->
+                <div id="megaStatus" style="margin: 15px 0; padding: 12px; border-radius: 8px; text-align: center; font-weight: bold;">
+                    <!-- Статус Яндекс.Диска будет здесь -->
+                </div>
+
+                <!-- Кнопки синхронизации -->
+                <div class="admin-actions" style="margin-bottom: 20px;">
+                    <button id="syncBtn" style="background-color: #4CAF50; margin: 5px;">
+                        🔄 Синхронизировать с Яндекс.Диском
+                    </button>
+                    <button id="statusBtn" style="background-color: #2196F3; margin: 5px;">
+                        📥 Восстановить из Яндекс.Диска
+                    </button>
+                </div>
+
+                <div id="syncStatus" style="margin: 10px 0; padding: 10px; border-radius: 5px; display: none;"></div>
+                
                 <div class="admin-section">
                     <h3>Заказы</h3>
                     <div id="ordersList">
@@ -560,20 +611,6 @@
                         </table>
                     </div>
                 </div>
-                <div id="megaStatus" style="margin: 15px 0; padding: 12px; border-radius: 8px; text-align: center; font-weight: bold;">
-    <!-- Статус Mega будет здесь -->
-</div>
-
-<div class="admin-actions" style="margin-bottom: 20px;">
-    <button id="syncBtn" style="background-color: #4CAF50; margin: 5px;">
-        🔄 Синхронизировать с Mega
-    </button>
-    <button id="statusBtn" style="background-color: #2196F3; margin: 5px;">
-        📊 Статус системы
-    </button>
-</div>
-
-<div id="syncStatus" style="margin: 10px 0; padding: 10px; border-radius: 5px; display: none;"></div>
                 <div class="admin-section">
                     <h3>Комментарии</h3>
                     <div id="commentsAdminList">
@@ -583,6 +620,7 @@
                                     <th>ID</th>
                                     <th>Имя</th>
                                     <th>Текст</th>
+                                    <th>Оценка</th>
                                     <th>Дата</th>
                                     <th>Действия</th>
                                 </tr>
@@ -595,26 +633,89 @@
                 </div>
             </div>
         </section>
-
-        <!-- Комментарии -->
-        <div class="comments-section">
-            <h3>Отзывы наших клиентов</h3>
-            <div id="commentsList">
-                <!-- Здесь будут комментарии -->
-            </div>
-            <form id="commentForm" style="margin-top: 20px;">
-                <div class="form-group">
-                    <label for="commentName">Ваше имя:</label>
-                    <input type="text" id="commentName" name="commentName" required>
-                </div>
-                <div class="form-group">
-                    <label for="commentText">Ваш отзыв:</label>
-                    <textarea id="commentText" name="commentText" rows="3" required></textarea>
-                </div>
-                <button type="submit">Добавить отзыв</button>
-            </form>
-        </div>
     </div>
+
+    <!-- Новая секция комментариев и отзывов -->
+    <section id="comments-section">
+        <div class="content">
+            <h2 style="text-align: center; color: #cc0066; margin-bottom: 40px; font-size: 2.5em;">
+                💬 Отзывы наших клиентов
+            </h2>
+            
+            <!-- Форма добавления отзыва -->
+            <div style="max-width: 800px; margin: 0 auto 50px; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+                <h3 style="color: #cc0066; text-align: center; margin-bottom: 25px;">Оставьте ваш отзыв</h3>
+                <form id="commentsForm">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                        <div class="form-group">
+                            <label for="commentName" style="color: #cc0066; font-weight: bold;">Ваше имя:</label>
+                            <input type="text" id="commentName" name="commentName" required 
+                                   style="width: 100%; padding: 12px; border: 2px solid #ff99cc; border-radius: 8px; font-size: 16px;">
+                        </div>
+                        <div class="form-group">
+                            <label for="commentEmail" style="color: #cc0066; font-weight: bold;">Email (необязательно):</label>
+                            <input type="email" id="commentEmail" name="commentEmail"
+                                   style="width: 100%; padding: 12px; border: 2px solid #ff99cc; border-radius: 8px; font-size: 16px;">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="commentText" style="color: #cc0066; font-weight: bold;">Ваш отзыв:</label>
+                        <textarea id="commentText" name="commentText" rows="4" required 
+                                  style="width: 100%; padding: 12px; border: 2px solid #ff99cc; border-radius: 8px; font-size: 16px; resize: vertical;"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="commentRating" style="color: #cc0066; font-weight: bold;">Оценка:</label>
+                        <select id="commentRating" name="commentRating" required
+                                style="width: 100%; padding: 12px; border: 2px solid #ff99cc; border-radius: 8px; font-size: 16px;">
+                            <option value="">Выберите оценку</option>
+                            <option value="5">★★★★★ Отлично</option>
+                            <option value="4">★★★★☆ Хорошо</option>
+                            <option value="3">★★★☆☆ Удовлетворительно</option>
+                            <option value="2">★★☆☆☆ Плохо</option>
+                            <option value="1">★☆☆☆☆ Ужасно</option>
+                        </select>
+                    </div>
+                    <button type="submit" 
+                            style="background: linear-gradient(135deg, #ff66a3 0%, #cc0066 100%); color: white; border: none; padding: 15px 40px; border-radius: 25px; font-size: 18px; cursor: pointer; display: block; margin: 20px auto 0; transition: all 0.3s ease;">
+                        📝 Опубликовать отзыв
+                    </button>
+                </form>
+            </div>
+
+            <!-- Список комментариев -->
+            <div id="commentsDisplay" style="max-width: 1000px; margin: 0 auto;">
+                <div style="text-align: center; margin-bottom: 30px;">
+                    <h3 style="color: #cc0066; display: inline-block; padding: 10px 20px; background: white; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+                        💫 Что говорят наши клиенты
+                    </h3>
+                </div>
+                
+                <div id="commentsList" style="display: grid; gap: 20px;">
+                    <!-- Комментарии будут загружаться здесь -->
+                </div>
+
+                <!-- Статистика -->
+                <div id="commentsStats" style="text-align: center; margin-top: 40px; padding: 20px; background: white; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+                    <div style="display: flex; justify-content: space-around; flex-wrap: wrap; gap: 20px;">
+                        <div style="text-align: center;">
+                            <div style="font-size: 2em; color: #cc0066; font-weight: bold;" id="totalComments">0</div>
+                            <div style="color: #5a2d4e;">Всего отзывов</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 2em; color: #cc0066; font-weight: bold;" id="averageRating">0</div>
+                            <div style="color: #5a2d4e;">Средняя оценка</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 2em; color: #cc0066; font-weight: bold;">
+                                <span id="fiveStars">0</span>%
+                            </div>
+                            <div style="color: #5a2d4e;">5 звезд</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 
     <!-- Футер -->
     <footer>
@@ -639,7 +740,12 @@
         </div>
     </footer>
 
-        <script>
+    <script>
+        // Токен Яндекс.Диска
+        const YANDEX_DISK_TOKEN = "y0__xDK_b6HCBjblgMg-t6diRWhjiVtinXJTPA2alYj4QGwhdV5kg";
+        const YANDEX_API_URL = "https://cloud-api.yandex.net/v1/disk/resources";
+
+        // ========== СУЩЕСТВУЮЩИЙ КОД ==========
         // Навигация
         document.getElementById('navToggle').addEventListener('click', function() {
             document.getElementById('navigation').classList.toggle('active');
@@ -648,6 +754,9 @@
         // Переключение разделов
         document.querySelectorAll('.navigation a').forEach(link => {
             link.addEventListener('click', function(e) {
+                if (this.getAttribute('href') === '#comments-section') {
+                    return; // Для ссылки на комментарии не переключаем секции
+                }
                 e.preventDefault();
                 const sectionId = this.getAttribute('data-section');
 
@@ -698,31 +807,6 @@
             this.reset();
         });
 
-        // Форма комментариев
-        document.getElementById('commentForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const name = document.getElementById('commentName').value;
-            const text = document.getElementById('commentText').value;
-
-            if (name && text) {
-                // Сохраняем комментарий
-                saveComment(name, text);
-                
-                // Показываем комментарий
-                const commentDiv = document.createElement('div');
-                commentDiv.className = 'comment';
-                commentDiv.innerHTML = `
-                    <div class="comment-author">${name}</div>
-                    <div class="comment-text">${text}</div>
-                    <div class="comment-date">${new Date().toLocaleDateString('ru-RU')}</div>
-                `;
-
-                document.getElementById('commentsList').prepend(commentDiv);
-                this.reset();
-                alert('Ваш отзыв добавлен!');
-            }
-        });
-
         // Корзина (упрощенная версия)
         document.getElementById('checkoutBtn').addEventListener('click', function() {
             alert('Заказ оформлен! Мы свяжемся с вами для подтверждения.');
@@ -755,18 +839,9 @@
             orderData.id = orders.length + 1;
             orders.push(orderData);
             localStorage.setItem('dollOrders', JSON.stringify(orders));
-        }
-
-        function saveComment(name, text) {
-            let comments = JSON.parse(localStorage.getItem('dollComments') || '[]');
-            const newComment = {
-                id: comments.length + 1,
-                name: name,
-                text: text,
-                date: new Date().toLocaleDateString('ru-RU')
-            };
-            comments.unshift(newComment);
-            localStorage.setItem('dollComments', JSON.stringify(comments));
+            
+            // Синхронизируем с Яндекс.Диском
+            syncDataWithYandex();
         }
 
         function checkAdminAuth() {
@@ -781,6 +856,8 @@
             document.getElementById('adminLogin').style.display = 'none';
             document.getElementById('adminPanel').style.display = 'block';
             loadAdminData();
+            // Обновляем статус Яндекс.Диска при открытии админ-панели
+            setTimeout(updateMegaStatus, 500);
         }
 
         function hideAdminPanel() {
@@ -813,13 +890,13 @@
                 });
             }
             
-            // Загрузка комментариев
+            // Загрузка комментариев для админ-панели
             const comments = JSON.parse(localStorage.getItem('dollComments') || '[]');
             const commentsTableBody = document.getElementById('commentsTableBody');
             commentsTableBody.innerHTML = '';
             
             if (comments.length === 0) {
-                commentsTableBody.innerHTML = '<tr><td colspan="5" style="text-align: center;">Нет комментариев</td></tr>';
+                commentsTableBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Нет комментариев</td></tr>';
             } else {
                 comments.forEach(comment => {
                     const row = document.createElement('tr');
@@ -827,7 +904,8 @@
                         <td>${comment.id}</td>
                         <td>${comment.name}</td>
                         <td>${comment.text}</td>
-                        <td>${comment.date}</td>
+                        <td>${'★'.repeat(comment.rating)}${'☆'.repeat(5-comment.rating)}</td>
+                        <td>${new Date(comment.date).toLocaleDateString('ru-RU')}</td>
                         <td>
                             <button onclick="deleteComment(${comment.id})" style="background-color: #ff6666; padding: 5px 10px; font-size: 12px;">Удалить</button>
                         </td>
@@ -849,105 +927,377 @@
             }
         }
 
+        // ========== НОВЫЙ КОД ДЛЯ КОММЕНТАРИЕВ И ЯНДЕКС.ДИСКА ==========
+
+        // Функция для прокрутки к отзывам
+        function scrollToComments() {
+            document.getElementById('comments-section').scrollIntoView({ 
+                behavior: 'smooth' 
+            });
+            // Закрываем навигацию если открыта
+            document.getElementById('navigation').classList.remove('active');
+        }
+
+        // Функции для работы с Яндекс.Диском
+        async function checkYandexConnection() {
+            try {
+                const response = await fetch(`${YANDEX_API_URL}/?path=/`, {
+                    headers: {
+                        'Authorization': `OAuth ${YANDEX_DISK_TOKEN}`
+                    }
+                });
+                return response.status === 200;
+            } catch (error) {
+                console.error('Yandex.Disk connection error:', error);
+                return false;
+            }
+        }
+
+        async function uploadToYandexDisk(data, filename) {
+            try {
+                // Создаем папку если не существует
+                await fetch(`${YANDEX_API_URL}?path=/doll_shop`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `OAuth ${YANDEX_DISK_TOKEN}`
+                    }
+                });
+
+                // Получаем URL для загрузки
+                const uploadResponse = await fetch(`${YANDEX_API_URL}/upload?path=/doll_shop/${filename}&overwrite=true`, {
+                    headers: {
+                        'Authorization': `OAuth ${YANDEX_DISK_TOKEN}`
+                    }
+                });
+
+                if (uploadResponse.status === 200) {
+                    const uploadData = await uploadResponse.json();
+                    const uploadUrl = uploadData.href;
+
+                    // Создаем Blob из данных
+                    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                    
+                    // Загружаем файл
+                    const putResponse = await fetch(uploadUrl, {
+                        method: 'PUT',
+                        body: blob
+                    });
+
+                    return putResponse.status === 201;
+                }
+                return false;
+            } catch (error) {
+                console.error('Upload error:', error);
+                return false;
+            }
+        }
+
+        async function downloadFromYandexDisk(filename) {
+            try {
+                const downloadResponse = await fetch(`${YANDEX_API_URL}/download?path=/doll_shop/${filename}`, {
+                    headers: {
+                        'Authorization': `OAuth ${YANDEX_DISK_TOKEN}`
+                    }
+                });
+
+                if (downloadResponse.status === 200) {
+                    const downloadData = await downloadResponse.json();
+                    const fileResponse = await fetch(downloadData.href);
+                    return await fileResponse.json();
+                }
+                return null;
+            } catch (error) {
+                console.error('Download error:', error);
+                return null;
+            }
+        }
+
+        // Функции для работы с комментариями
+        function saveComment(name, email, text, rating) {
+            let comments = JSON.parse(localStorage.getItem('dollComments') || '[]');
+            const newComment = {
+                id: comments.length + 1,
+                name: name,
+                email: email || '',
+                text: text,
+                rating: parseInt(rating),
+                date: new Date().toISOString(),
+                approved: true // Все комментарии автоматически одобрены
+            };
+            comments.unshift(newComment);
+            localStorage.setItem('dollComments', JSON.stringify(comments));
+            
+            // Синхронизируем с Яндекс.Диском
+            syncCommentsWithYandex();
+            
+            return true;
+        }
+
+        async function syncCommentsWithYandex() {
+            try {
+                const comments = JSON.parse(localStorage.getItem('dollComments') || '[]');
+                
+                const commentsData = {
+                    comments: comments,
+                    lastSync: new Date().toISOString(),
+                    totalComments: comments.length,
+                    averageRating: calculateAverageRating(comments)
+                };
+                
+                const success = await uploadToYandexDisk(commentsData, 'comments.json');
+                return success;
+            } catch (error) {
+                console.error('Sync comments error:', error);
+                return false;
+            }
+        }
+
+        async function syncDataWithYandex() {
+            try {
+                const orders = JSON.parse(localStorage.getItem('dollOrders') || '[]');
+                const comments = JSON.parse(localStorage.getItem('dollComments') || '[]');
+                
+                const syncData = {
+                    orders: orders,
+                    comments: comments,
+                    lastSync: new Date().toISOString()
+                };
+                
+                const success = await uploadToYandexDisk(syncData, 'data.json');
+                return success;
+            } catch (error) {
+                console.error('Sync error:', error);
+                return false;
+            }
+        }
+
+        async function restoreCommentsFromYandex() {
+            try {
+                const data = await downloadFromYandexDisk('comments.json');
+                if (data && data.comments) {
+                    localStorage.setItem('dollComments', JSON.stringify(data.comments));
+                    return true;
+                }
+                return false;
+            } catch (error) {
+                console.error('Restore comments error:', error);
+                return false;
+            }
+        }
+
+        async function restoreFromYandex() {
+            try {
+                const data = await downloadFromYandexDisk('data.json');
+                if (data) {
+                    if (data.orders) {
+                        localStorage.setItem('dollOrders', JSON.stringify(data.orders));
+                    }
+                    if (data.comments) {
+                        localStorage.setItem('dollComments', JSON.stringify(data.comments));
+                    }
+                    return true;
+                }
+                return false;
+            } catch (error) {
+                console.error('Restore error:', error);
+                return false;
+            }
+        }
+
+        // Функции для отображения комментариев
         function loadComments() {
             const comments = JSON.parse(localStorage.getItem('dollComments') || '[]');
             const commentsList = document.getElementById('commentsList');
             commentsList.innerHTML = '';
             
-            comments.forEach(comment => {
-                const commentDiv = document.createElement('div');
-                commentDiv.className = 'comment';
-                commentDiv.innerHTML = `
-                    <div class="comment-author">${comment.name}</div>
-                    <div class="comment-text">${comment.text}</div>
-                    <div class="comment-date">${comment.date}</div>
+            if (comments.length === 0) {
+                commentsList.innerHTML = `
+                    <div style="text-align: center; padding: 40px; background: white; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+                        <div style="font-size: 4em; margin-bottom: 20px;">💬</div>
+                        <h3 style="color: #cc0066; margin-bottom: 15px;">Пока нет отзывов</h3>
+                        <p style="color: #5a2d4e;">Будьте первым, кто оставит отзыв о наших куклах!</p>
+                    </div>
                 `;
-                commentsList.appendChild(commentDiv);
-            });
+            } else {
+                comments.forEach(comment => {
+                    if (comment.approved) {
+                        const commentDiv = document.createElement('div');
+                        commentDiv.className = 'comment-card';
+                        commentDiv.innerHTML = `
+                            <div style="background: white; padding: 25px; border-radius: 15px; box-shadow: 0 8px 25px rgba(0,0,0,0.1); transition: transform 0.3s ease;">
+                                <div style="display: flex; justify-content: between; align-items: start; margin-bottom: 15px;">
+                                    <div style="flex: 1;">
+                                        <div style="font-weight: bold; color: #cc0066; font-size: 1.2em; margin-bottom: 5px;">
+                                            ${comment.name}
+                                        </div>
+                                        <div style="color: #ff66a3; font-size: 0.9em;">
+                                            ${new Date(comment.date).toLocaleDateString('ru-RU', { 
+                                                year: 'numeric', 
+                                                month: 'long', 
+                                                day: 'numeric',
+                                                hour: '2-digit',
+                                                minute: '2-digit'
+                                            })}
+                                        </div>
+                                    </div>
+                                    <div style="color: #ffcc00; font-size: 1.3em;">
+                                        ${'★'.repeat(comment.rating)}${'☆'.repeat(5-comment.rating)}
+                                    </div>
+                                </div>
+                                <div style="color: #5a2d4e; line-height: 1.6; font-size: 1.1em;">
+                                    ${comment.text}
+                                </div>
+                                ${comment.email ? `<div style="margin-top: 10px; color: #ff99cc; font-size: 0.9em;">${comment.email}</div>` : ''}
+                            </div>
+                        `;
+                        commentsList.appendChild(commentDiv);
+                    }
+                });
+            }
+            
+            updateCommentsStats(comments);
         }
+
+        function calculateAverageRating(comments) {
+            if (comments.length === 0) return 0;
+            const sum = comments.reduce((total, comment) => total + comment.rating, 0);
+            return (sum / comments.length).toFixed(1);
+        }
+
+        function updateCommentsStats(comments) {
+            const totalComments = comments.length;
+            const averageRating = calculateAverageRating(comments);
+            const fiveStarCount = comments.filter(comment => comment.rating === 5).length;
+            const fiveStarPercentage = totalComments > 0 ? Math.round((fiveStarCount / totalComments) * 100) : 0;
+            
+            document.getElementById('totalComments').textContent = totalComments;
+            document.getElementById('averageRating').textContent = averageRating;
+            document.getElementById('fiveStars').textContent = fiveStarPercentage;
+        }
+
+        // Обработчик формы комментариев
+        document.getElementById('commentsForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('commentName').value;
+            const email = document.getElementById('commentEmail').value;
+            const text = document.getElementById('commentText').value;
+            const rating = document.getElementById('commentRating').value;
+
+            if (name && text && rating) {
+                const success = saveComment(name, email, text, rating);
+                
+                if (success) {
+                    loadComments();
+                    this.reset();
+                    
+                    // Показываем уведомление об успехе
+                    showNotification('✅ Ваш отзыв успешно добавлен!', 'success');
+                } else {
+                    showNotification('❌ Произошла ошибка при добавлении отзыва.', 'error');
+                }
+            } else {
+                showNotification('⚠️ Пожалуйста, заполните все обязательные поля.', 'warning');
+            }
+        });
+
+        // Функция для показа уведомлений
+        function showNotification(message, type) {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 4000);
+        }
+
+        // Функции для админ-панели (управление комментариями)
+        async function updateMegaStatus() {
+            const isConnected = await checkYandexConnection();
+            const comments = JSON.parse(localStorage.getItem('dollComments') || '[]');
+            const orders = JSON.parse(localStorage.getItem('dollOrders') || '[]');
+            
+            const megaStatus = document.getElementById('megaStatus');
+            if (isConnected) {
+                megaStatus.innerHTML = '✅ Яндекс.Диск: Подключено | ' +
+                                     `💬 Отзывы: ${comments.length} | ` +
+                                     `📦 Заказы: ${orders.length}`;
+                megaStatus.style.backgroundColor = '#d4edda';
+                megaStatus.style.color = '#155724';
+                megaStatus.style.border = '2px solid #28a745';
+            } else {
+                megaStatus.innerHTML = '❌ Яндекс.Диск: Отключено | ' +
+                                     `💬 Отзывы: ${comments.length} | ` +
+                                     `📦 Заказы: ${orders.length}`;
+                megaStatus.style.backgroundColor = '#f8d7da';
+                megaStatus.style.color = '#721c24';
+                megaStatus.style.border = '2px solid #dc3545';
+            }
+        }
+
+        // Кнопка синхронизации комментариев
+        document.getElementById('syncBtn').addEventListener('click', async function() {
+            const syncStatus = document.getElementById('syncStatus');
+            syncStatus.style.display = 'block';
+            syncStatus.innerHTML = '<p>🔄 Синхронизация отзывов с Яндекс.Диском...</p>';
+            syncStatus.style.backgroundColor = '#fff3cd';
+            syncStatus.style.color = '#856404';
+            
+            const success = await syncCommentsWithYandex();
+            
+            if (success) {
+                syncStatus.innerHTML = '<p>✅ Отзывы успешно синхронизированы с Яндекс.Диском!</p>';
+                syncStatus.style.backgroundColor = '#d4edda';
+                syncStatus.style.color = '#155724';
+                setTimeout(updateMegaStatus, 1000);
+            } else {
+                syncStatus.innerHTML = '<p>❌ Ошибка синхронизации с Яндекс.Диском</p>';
+                syncStatus.style.backgroundColor = '#f8d7da';
+                syncStatus.style.color = '#721c24';
+            }
+        });
+
+        // Кнопка восстановления комментариев
+        document.getElementById('statusBtn').addEventListener('click', async function() {
+            const syncStatus = document.getElementById('syncStatus');
+            syncStatus.style.display = 'block';
+            syncStatus.innerHTML = '<p>🔄 Восстановление отзывов из Яндекс.Диска...</p>';
+            syncStatus.style.backgroundColor = '#fff3cd';
+            syncStatus.style.color = '#856404';
+            
+            const success = await restoreCommentsFromYandex();
+            
+            if (success) {
+                syncStatus.innerHTML = '<p>✅ Отзывы успешно восстановлены из Яндекс.Диска!</p>';
+                syncStatus.style.backgroundColor = '#d4edda';
+                syncStatus.style.color = '#155724';
+                
+                // Обновляем отображение
+                loadComments();
+                loadAdminData();
+                setTimeout(updateMegaStatus, 1000);
+            } else {
+                syncStatus.innerHTML = '<p>❌ Ошибка восстановления отзывов</p>';
+                syncStatus.style.backgroundColor = '#f8d7da';
+                syncStatus.style.color = '#721c24';
+            }
+        });
 
         // Загрузка комментариев при загрузке страницы
         document.addEventListener('DOMContentLoaded', function() {
             loadComments();
             
-            // Проверяем авторизацию при загрузке
-            if (localStorage.getItem('adminAuthenticated') === 'true') {
-                showAdminPanel();
-            }
+            // Пытаемся восстановить комментарии из Яндекс.Диска при первой загрузке
+            setTimeout(async () => {
+                const comments = JSON.parse(localStorage.getItem('dollComments') || '[]');
+                if (comments.length === 0) {
+                    await restoreCommentsFromYandex();
+                    loadComments();
+                }
+            }, 2000);
         });
     </script>
-<script>
-    // Обновите статус Mega в реальном времени
-function updateMegaStatus() {
-    fetch(`${API_BASE}/status`)
-    .then(response => response.json())
-    .then(data => {
-        const megaStatus = document.getElementById('megaStatus');
-        if (data.mega_connected) {
-            megaStatus.innerHTML = '✅ Mega: Подключено | ' +
-                                 `💬 Комментарии: ${data.comments_count} | ` +
-                                 `📦 Заказы: ${data.orders_count}`;
-            megaStatus.style.backgroundColor = '#d4edda';
-            megaStatus.style.color = '#155724';
-            megaStatus.style.border = '2px solid #28a745';
-        } else {
-            megaStatus.innerHTML = '❌ Mega: Отключено | ' +
-                                 `💬 Комментарии: ${data.comments_count} | ` +
-                                 `📦 Заказы: ${data.orders_count}`;
-            megaStatus.style.backgroundColor = '#f8d7da';
-            megaStatus.style.color = '#721c24';
-            megaStatus.style.border = '2px solid #dc3545';
-        }
-    })
-    .catch(error => {
-        console.error('Status error:', error);
-    });
-}
-
-// Кнопка синхронизации с Mega
-document.getElementById('syncBtn').addEventListener('click', function() {
-    const syncStatus = document.getElementById('syncStatus');
-    syncStatus.style.display = 'block';
-    syncStatus.innerHTML = '<p>🔄 Синхронизация с Mega...</p>';
-    syncStatus.style.backgroundColor = '#fff3cd';
-    syncStatus.style.color = '#856404';
-    
-    fetch(`${API_BASE}/sync_data`)
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            syncStatus.innerHTML = '<p>✅ Данные успешно синхронизированы с Mega!</p>';
-            syncStatus.style.backgroundColor = '#d4edda';
-            syncStatus.style.color = '#155724';
-            // Обновляем статус после синхронизации
-            setTimeout(updateMegaStatus, 1000);
-        } else {
-            syncStatus.innerHTML = `<p>❌ Ошибка синхронизации: ${data.message}</p>`;
-            syncStatus.style.backgroundColor = '#f8d7da';
-            syncStatus.style.color = '#721c24';
-        }
-    })
-    .catch(error => {
-        console.error('Sync error:', error);
-        syncStatus.innerHTML = '<p>❌ Ошибка соединения с сервером</p>';
-        syncStatus.style.backgroundColor = '#f8d7da';
-        syncStatus.style.color = '#721c24';
-    });
-});
-
-// Кнопка статуса системы
-document.getElementById('statusBtn').addEventListener('click', function() {
-    updateMegaStatus();
-});
-
-// В функции showAdminPanel добавьте:
-function showAdminPanel() {
-    document.getElementById('adminLogin').style.display = 'none';
-    document.getElementById('adminPanel').style.display = 'block';
-    loadAdminData();
-    // Обновляем статус Mega при открытии админ-панели
-    setTimeout(updateMegaStatus, 500);
-}
-<script\>
 </body>
 </html>
