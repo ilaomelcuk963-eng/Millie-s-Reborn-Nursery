@@ -7,9 +7,7 @@
     <link rel="shortcut icon" href="./free-icon-doll-8013731.png" type="image/x-icon">
 
     <style>
-        /* -------------------------
-           Основные стили (index.html)
-           ------------------------- */
+        /* Ваши существующие стили остаются без изменений */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Arial', sans-serif; }
 
         body {
@@ -92,12 +90,7 @@
         .notification.error { background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%); }
         .notification.warning { background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%); }
 
-        /* -------------------------
-           Стили, добавленные из comment.html
-           (чуть позже — не конфликтуют сильно)
-           ------------------------- */
-        /* body, header, container, form, comments list styles from comment.html */
-        /* некоторые ключевые правила продублированы / усилены для внешнего вида */
+        /* Стили для секции отзывов */
         header.site-header {
             text-align: center; padding: 40px 20px; background: linear-gradient(180deg, #ffc0cb, #ffe6f2);
             box-shadow: 0 4px 6px rgba(0,0,0,0.1); animation: fadeIn 1s ease-in-out; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px;
@@ -110,6 +103,21 @@
 
         /* small util */
         .center { text-align:center; }
+        
+        /* Дополнительные стили для рейтинга */
+        .rating-group { display: flex; gap: 10px; align-items: center; margin-top: 5px; }
+        .rating-group input[type="radio"] { display: none; }
+        .rating-group label { 
+            cursor: pointer; 
+            padding: 5px 10px; 
+            background: #ffe6f2; 
+            border-radius: 5px; 
+            transition: all 0.3s ease;
+        }
+        .rating-group input[type="radio"]:checked + label {
+            background: #ff66a3;
+            color: white;
+        }
     </style>
 </head>
 <body>
@@ -128,7 +136,7 @@
             <li><a href="#" data-section="order">Заказ</a></li>
             <li><a href="#" data-section="cart">Корзина</a></li>
             <li><a href="#" data-section="admin">Админ-панель</a></li>
-            <li><a href="#comments-section" onclick="scrollToComments()">Отзывы</a></li>
+            <li><a href="#" data-section="comments-section">Отзывы</a></li> <!-- ИЗМЕНЕНО -->
         </ul>
     </nav>
 
@@ -184,8 +192,8 @@
             <p>Заполните форму ниже, чтобы оформить заказ на создание уникальной куклы. Мы свяжемся с вами для уточнения деталей.</p>
             <form id="orderForm">
                 <div class="form-group">
-                    <label for="name">Ваше имя:</label>
-                    <input type="text" id="name" name="name" required>
+                    <label for="orderName">Ваше имя:</label> <!-- ИЗМЕНЕНО ID -->
+                    <input type="text" id="orderName" name="name" required>
                 </div>
                 <div class="form-group">
                     <label for="email">Email:</label>
@@ -285,9 +293,8 @@
                                 </tr>
                             </thead>
                             <tbody id="commentsTableBody">
-                                <!-- Теперь комментарии хранятся в Firebase; здесь сообщение -->
                                 <tr><td colspan="6" style="text-align:center; color:#721c24; padding:20px;">
-                                    Комментарии теперь хранятся в Firebase. Для управления ими добавь админ-функции, работающие с Firestore.
+                                    Комментарии хранятся в Firebase. Для управления ими добавь админ-функции, работающие с Firestore.
                                 </td></tr>
                             </tbody>
                         </table>
@@ -296,29 +303,29 @@
             </div>
         </section>
 
-        <!-- ========== Секция отзывов (встроенная из comment.html) ========== -->
+        <!-- ========== Секция отзывов ========== -->
         <section id="comments-section">
             <div class="comments-container">
                 <h2 style="text-align:center; color:#8b008b; margin-bottom:20px;">💬 Отзывы о Millie's Reborn Nursery</h2>
 
                 <!-- Статусное окно -->
-                <div id="statusMessage" style="margin-bottom:15px;"></div>
+                <div id="statusMessage" style="margin-bottom:15px; display:none; padding:10px; border-radius:5px;"></div>
 
-                <!-- Форма отзывов (используется Firebase) -->
+                <!-- Форма отзывов -->
                 <form id="commentsForm" class="comments-form" style="background:#fff; padding:20px; border-radius:10px; box-shadow:0 4px 8px rgba(0,0,0,0.05);">
                     <div class="form-group">
-                        <label for="name">Ваше имя:</label>
-                        <input type="text" id="name" required minlength="2" />
+                        <label for="commentName">Ваше имя:</label> <!-- ИЗМЕНЕНО ID -->
+                        <input type="text" id="commentName" required minlength="2" />
                     </div>
 
                     <div class="form-group">
-                        <label for="comment">Ваш отзыв:</label>
-                        <textarea id="comment" required minlength="10"></textarea>
+                        <label for="commentText">Ваш отзыв:</label> <!-- ИЗМЕНЕНО ID -->
+                        <textarea id="commentText" required minlength="10"></textarea>
                     </div>
 
                     <div class="form-group">
                         <label>Оценка:</label>
-                        <div class="rating-group" style="display:flex; gap:10px; align-items:center; margin-top:5px;">
+                        <div class="rating-group">
                             <input type="radio" id="rating5" name="rating" value="5" required>
                             <label for="rating5">5</label>
                             <input type="radio" id="rating4" name="rating" value="4">
@@ -378,19 +385,30 @@
             document.getElementById('navigation').classList.toggle('active');
         });
 
-        // Переключение разделов (за исключением ссылки на #comments-section)
+        // Переключение разделов - УПРОЩЕННАЯ ВЕРСИЯ
         document.querySelectorAll('.navigation a').forEach(link => {
             link.addEventListener('click', function(e) {
-                if (this.getAttribute('href') === '#comments-section') {
-                    // ссылка на секцию отзывов — просто скролл
-                    return;
-                }
                 e.preventDefault();
                 const sectionId = this.getAttribute('data-section');
-                document.querySelectorAll('section').forEach(section => section.classList.remove('active'));
-                const target = document.getElementById(sectionId);
-                if (target) target.classList.add('active');
+                
+                // Скрыть все секции
+                document.querySelectorAll('section').forEach(section => {
+                    section.classList.remove('active');
+                });
+                
+                // Показать целевую секцию
+                const targetSection = document.getElementById(sectionId);
+                if (targetSection) {
+                    targetSection.classList.add('active');
+                    
+                    // Прокрутка к началу страницы для мобильных устройств
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+                
+                // Закрыть навигационное меню
                 document.getElementById('navigation').classList.remove('active');
+                
+                // Специальная обработка для админ-панели
                 if (sectionId === 'admin') {
                     checkAdminAuth();
                 }
@@ -403,8 +421,7 @@
             document.getElementById('gallery').classList.add('active');
         });
 
-        // Форма заказа (сохраняем в localStorage и синхронизируем с Яндекс.Диском — функционал оставлен для заказов)
-        // (Оставлено без изменений)
+        // Форма заказа
         document.getElementById('orderForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const formData = new FormData(this);
@@ -421,17 +438,16 @@
             this.reset();
         });
 
-        // Простейшая реализация корзины/заказов
+        // Сохранение заказа
         function saveOrder(orderData) {
             let orders = JSON.parse(localStorage.getItem('dollOrders') || '[]');
             orderData.id = orders.length + 1;
             orders.push(orderData);
             localStorage.setItem('dollOrders', JSON.stringify(orders));
-            // можно синхронизировать с внешним хранилищем — пока не меняем
             loadAdminData();
         }
 
-        // Админ (пароль — оставлен прежним, но содержимое комментариев в админке отмечено как Firebase)
+        // Админ-панель
         document.getElementById('loginBtn').addEventListener('click', function() {
             const password = document.getElementById('adminPassword').value;
             if (password === '1488') {
@@ -473,7 +489,7 @@
         }
 
         function loadAdminData() {
-            // Загрузка заказов в таблицу
+            // Загрузка заказов
             const orders = JSON.parse(localStorage.getItem('dollOrders') || '[]');
             const ordersTableBody = document.getElementById('ordersTableBody');
             ordersTableBody.innerHTML = '';
@@ -494,24 +510,9 @@
                     ordersTableBody.appendChild(row);
                 });
             }
-
-            // Комментарии: теперь хранятся в Firebase — для админа нужно отдельно подключиться к Firestore
-            const commentsTableBody = document.getElementById('commentsTableBody');
-            commentsTableBody.innerHTML = `
-                <tr><td colspan="6" style="text-align:center; color:#721c24; padding:20px;">
-                    Комментарии теперь хранятся в Firebase. Добавь админ-функции для управления Firestore.
-                </td></tr>
-            `;
         }
 
-        // Функция прокрутки к отзывам
-        function scrollToComments() {
-            const el = document.getElementById('comments-section');
-            if (el) el.scrollIntoView({ behavior: 'smooth' });
-            document.getElementById('navigation').classList.remove('active');
-        }
-
-        // Обновление статуса Яндекс.Диска (только для совместимости — можно оставить или удалить)
+        // Яндекс.Диск функционал (оставлен для совместимости)
         const YANDEX_DISK_TOKEN = "y0__xDK_b6HCBjblgMg-t6diRWhjiVtinXJTPA2alYj4QGwhdV5kg";
         const YANDEX_API_URL = "https://cloud-api.yandex.net/v1/disk/resources";
 
@@ -544,23 +545,20 @@
             }
         }
 
-        // Инициализация загрузки административных данных при старте
+        // Инициализация
         document.addEventListener('DOMContentLoaded', function() {
             loadAdminData();
-            // Можно попытаться восстановить заказы/данные из Яндекс.Диска здесь, если нужно
         });
     </script>
 
     <!-- =========================
-         Firebase + комментарии (из comment.html), с твоим firebaseConfig
+         Firebase + комментарии
          ========================= -->
     <script type="module">
-        // Импорты из Firebase (модульный CDN, как в comment.html)
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged, setPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot, query, serverTimestamp, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, serverTimestamp, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Вставляем твой firebaseConfig (из проекта dddd-ee6c7)
         const firebaseConfig = {
           apiKey: "AIzaSyAy7jHUSdvHQY5ypKMGHyQSUQ3QCFf9bNY",
           authDomain: "dddd-ee6c7.firebaseapp.com",
@@ -576,35 +574,23 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Включаем подробный лог для отладки
-        setLogLevel('debug');
-
-        // Авто-аутентификация анонимно и установка persistence
         let userId = null;
         let isAuthReady = false;
 
         async function initAuth() {
             try {
                 await setPersistence(auth, browserSessionPersistence);
-                await signInAnonymously(auth);
-                onAuthStateChanged(auth, (user) => {
-                    if (user) {
-                        userId = user.uid;
-                        isAuthReady = true;
-                        console.log("Firebase anonymous user:", userId);
-                        // После аутентификации — подключаем слушатель комментариев
-                        setupCommentListener();
-                    } else {
-                        console.warn("Firebase: user is signed out");
-                    }
-                });
-            } catch (e) {
-                showMessage(`❌ Ошибка Firebase Auth: ${e.message}`, '#f8d7da', '#721c24');
-                console.error(e);
+                const userCredential = await signInAnonymously(auth);
+                userId = userCredential.user.uid;
+                isAuthReady = true;
+                console.log("Firebase anonymous user:", userId);
+                setupCommentListener();
+            } catch (error) {
+                console.error("Firebase auth error:", error);
+                showMessage(`❌ Ошибка аутентификации: ${error.message}`, '#f8d7da', '#721c24');
             }
         }
 
-        // Удобная функция для показа сообщений
         function showMessage(message, bgColor = '#fff3cd', textColor = '#856404') {
             const el = document.getElementById('statusMessage');
             if (!el) return;
@@ -615,16 +601,12 @@
             setTimeout(() => { el.style.display = 'none'; }, 5000);
         }
 
-        // Слушатель коллекции комментариев
         function setupCommentListener() {
             if (!db || !isAuthReady) return;
             const commentsList = document.getElementById('commentsList');
             const loadingMessage = document.getElementById('loading-message');
 
-            const appId = firebaseConfig.projectId || 'default-app-id';
-            // Путь: используем коллекцию "comments" в корне проекта
-            const commentsRefPath = `comments`; // простая коллекция
-            const q = query(collection(db, commentsRefPath));
+            const q = query(collection(db, 'comments'), orderBy('timestamp', 'desc'));
 
             onSnapshot(q, (snapshot) => {
                 loadingMessage.style.display = 'none';
@@ -632,21 +614,18 @@
                 snapshot.forEach(doc => {
                     comments.push({ id: doc.id, ...doc.data() });
                 });
-                // сортируем по timestamp (новые сверху)
-                comments.sort((a,b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
                 renderComments(comments);
             }, (error) => {
                 loadingMessage.style.display = 'none';
                 showMessage(`❌ Ошибка загрузки отзывов: ${error.message}`, '#f8d7da', '#721c24');
-                console.error("Firestore onSnapshot error:", error);
-                commentsList.innerHTML = '<p style="text-align:center; color:red;">Ошибка загрузки комментариев.</p>';
+                console.error("Firestore error:", error);
             });
         }
 
-        // Рендер комментариев
         function renderComments(comments) {
             const commentsList = document.getElementById('commentsList');
             if (!commentsList) return;
+            
             if (!comments || comments.length === 0) {
                 commentsList.innerHTML = '<div style="text-align:center; padding:40px; background:white; border-radius:15px; box-shadow:0 5px 15px rgba(0,0,0,0.1);"><div style="font-size:4em; margin-bottom:20px;">💬</div><h3 style="color:#cc0066; margin-bottom:15px;">Пока нет отзывов</h3><p style="color:#5a2d4e;">Будьте первым, кто оставит отзыв о наших куклах!</p></div>';
                 return;
@@ -655,7 +634,13 @@
             let html = '';
             comments.forEach(comment => {
                 const dateObj = comment.timestamp ? new Date(comment.timestamp.seconds * 1000) : new Date();
-                const dateStr = dateObj.toLocaleDateString('ru-RU', { year:'numeric', month:'long', day:'numeric', hour:'2-digit', minute:'2-digit' });
+                const dateStr = dateObj.toLocaleDateString('ru-RU', { 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric', 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                });
                 const rating = comment.rating || 0;
                 const stars = '★'.repeat(rating) + '☆'.repeat(5 - rating);
                 html += `
@@ -673,15 +658,16 @@
             commentsList.innerHTML = html;
         }
 
-        // Сохранение нового комментария
         async function saveCommentToFirestore(e) {
             e.preventDefault();
+            
             if (!isAuthReady) {
-                showMessage('⚠️ Идёт настройка Firebase, попробуйте чуть позже.', '#fff3cd', '#856404');
+                showMessage('⚠️ Система отзывов загружается, попробуйте через несколько секунд.', '#fff3cd', '#856404');
                 return;
             }
-            const nameInput = document.getElementById('name');
-            const commentInput = document.getElementById('comment');
+
+            const nameInput = document.getElementById('commentName');
+            const commentInput = document.getElementById('commentText');
             const ratingInput = document.querySelector('input[name="rating"]:checked');
             const submitBtn = document.getElementById('submitBtn');
 
@@ -694,8 +680,8 @@
             submitBtn.textContent = 'Отправка...';
 
             const newComment = {
-                name: nameInput.value,
-                text: commentInput.value,
+                name: nameInput.value.trim(),
+                text: commentInput.value.trim(),
                 rating: parseInt(ratingInput.value),
                 timestamp: serverTimestamp(),
                 userId: userId
@@ -703,32 +689,28 @@
 
             try {
                 await addDoc(collection(db, 'comments'), newComment);
-                showMessage('✅ Отзыв успешно отправлен и виден всем!', '#d4edda', '#155724');
+                showMessage('✅ Отзыв успешно отправлен!', '#d4edda', '#155724');
                 document.getElementById('commentsForm').reset();
             } catch (err) {
-                showMessage('❌ Ошибка отправки отзыва. Проверь консоль.', '#f8d7da', '#721c24');
-                console.error("Error adding document:", err);
+                console.error("Error adding comment:", err);
+                showMessage('❌ Ошибка отправки отзыва. Попробуйте еще раз.', '#f8d7da', '#721c24');
             } finally {
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Отправить отзыв';
             }
         }
 
-        // Escape HTML to avoid injection in rendered comments
         function escapeHtml(str) {
             if (!str) return '';
-            return String(str).replace(/[&<>"'`=\/]/g, function (s) {
-                return ({
-                    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;',
-                    "'": '&#39;', '/': '&#x2F;', '`': '&#x60;', '=':'&#x3D;'
-                })[s];
-            });
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
         }
 
-        // Подключаем обработчик формы и запускаем аутентификацию
+        // Подключаем обработчик формы
         document.getElementById('commentsForm').addEventListener('submit', saveCommentToFirestore);
 
-        // Старт
+        // Запускаем аутентификацию
         initAuth();
 
     </script>
