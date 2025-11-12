@@ -1,2 +1,11 @@
-# Millie-s-Reborn-Nursery
-Milana
+your_project/
+├── main.py
+├── requirements.txt
+├── data.json (создастся автоматически)
+├── .env (опционально, для переменных окружения)
+└── static/
+    ├── index.html (ваш HTML файл)
+    ├── free-icon-doll-8013731.png
+    ├── изображение_viber_2025-11-01_12-52-31-434.jpg
+    ├── изображение_viber_2025-11-01_12-52-32-199.jpg
+    └── ... (остальные изображения)
