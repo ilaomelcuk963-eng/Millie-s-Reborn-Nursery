@@ -459,7 +459,7 @@
             <div id="adminPanel" class="admin-panel" style="display: none;">
                 <!-- Блок Яндекс.Диска ВОССТАНОВЛЕН -->
                 <div id="megaStatus" style="margin: 15px 0; padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; background: #eee;">
-                    Статус Я.Диска
+                    Статус Я.Диска: Автообновление не запущено
                 </div>
                 <div style="display: flex; gap: 10px; margin-bottom: 20px;">
                     <!-- Кнопки 'Сохранить' и 'Загрузить' ВОССТАНОВЛЕНЫ -->
@@ -496,6 +496,7 @@
         const DATA_FILENAME = "data.json"; // Единый файл для всего
         
         let isAdminLoggedIn = false; // Отслеживаем состояние входа
+        let pollIntervalId; // Для хранения идентификатора интервала
 
         // === НАВИГАЦИЯ (ИСПРАВЛЕНО) ===
         document.getElementById('navToggle').addEventListener('click', () => {
@@ -543,7 +544,7 @@
             if (comments) localStorage.setItem('dollComments', JSON.stringify(comments));
         }
 
-        // === ФУНКЦИИ YANDEX DISK (syncToYandex, loadFromYandex) ВОССТАНОВЛЕНЫ ===
+        // === ФУНКЦИИ YANDEX DISK (syncToYandex, loadFromYandex) УЛУЧШЕНЫ ===
         
         async function syncToYandex() {
             showNotification('⏳ Сохранение в облако...', 'warning');
@@ -563,21 +564,29 @@
                     
                     if (putResp.ok) {
                         showNotification('✅ Данные сохранены в data.json!', 'success');
-                        document.getElementById('megaStatus').textContent = 'Статус: Сохранено в облаке';
+                        document.getElementById('megaStatus').textContent = 'Статус Я.Диска: Сохранено в облаке';
                     }
                 } else {
-                     document.getElementById('megaStatus').textContent = 'Статус: Ошибка (URL загрузки)';
+                    // Улучшенное логирование ошибки статуса HTTP
+                    const status = uploadResp.status;
+                    const errorText = await uploadResp.text();
+                    console.error(`❌ Ошибка Yandex API. Статус: ${status}. Ответ: ${errorText.substring(0, 100)}...`);
+                    showNotification(`❌ Ошибка загрузки (Статус ${status}). Проверьте токен и путь!`, 'error');
+                    document.getElementById('megaStatus').textContent = `Статус Я.Диска: Ошибка загрузки (${status})`;
                 }
             } catch (e) {
-                console.error(e);
-                showNotification('❌ Ошибка сохранения (CORS или токен)', 'error');
-                document.getElementById('megaStatus').textContent = 'Статус: Ошибка сети/CORS';
+                console.error("Ошибка при сохранении (NetworkError/CORS):", e);
+                showNotification('❌ Ошибка сети. Невозможно связаться с Я.Диском. Проверьте соединение/токен.', 'error');
+                document.getElementById('megaStatus').textContent = 'Статус Я.Диска: Ошибка сети/CORS';
             }
         }
 
-        async function loadFromYandex() {
-            showNotification('⏳ Загрузка из облака...', 'warning');
-            document.getElementById('megaStatus').textContent = 'Статус: Загрузка...';
+        async function loadFromYandex(isSilent = false) {
+            if (!isSilent) {
+                showNotification('⏳ Загрузка из облака...', 'warning');
+                document.getElementById('megaStatus').textContent = 'Статус Я.Диска: Загрузка...';
+            }
+            
             try {
                 // 1. Получаем URL для скачивания
                 const downloadResp = await fetch(`${YANDEX_API_URL}/download?path=/doll_shop/${DATA_FILENAME}`, {
@@ -591,21 +600,52 @@
                     const data = await fileResp.json();
                     
                     if (data) {
-                        saveLocalData(data.orders, data.comments);
-                        renderAll();
-                        showNotification('✅ Данные загружены!', 'success');
-                        document.getElementById('megaStatus').textContent = 'Статус: Загружено из облака';
+                        // Сравниваем данные, чтобы избежать лишнего рендеринга
+                        const localComments = JSON.parse(localStorage.getItem('dollComments') || '[]');
+                        const cloudCommentsJSON = JSON.stringify(data.comments);
+                        const localCommentsJSON = JSON.stringify(localComments);
+
+                        if (cloudCommentsJSON !== localCommentsJSON || isSilent === false) {
+                            saveLocalData(data.orders, data.comments);
+                            renderAll();
+                            if (!isSilent) showNotification('✅ Данные загружены!', 'success');
+                        }
+                        
+                        if (!isSilent) document.getElementById('megaStatus').textContent = 'Статус Я.Диска: Загружено из облака';
                         return true;
                     }
                 } else {
-                    document.getElementById('megaStatus').textContent = 'Статус: Ошибка (URL скачивания)';
+                    // Улучшенное логирование ошибки статуса HTTP
+                    const status = downloadResp.status;
+                    const errorText = await downloadResp.text();
+                    console.error(`❌ Ошибка Yandex API. Статус: ${status}. Ответ: ${errorText.substring(0, 100)}...`);
+                    
+                    if (!isSilent) {
+                        showNotification(`❌ Ошибка загрузки (Статус ${status}). Проверьте токен и наличие файла!`, 'error');
+                        document.getElementById('megaStatus').textContent = `Статус Я.Диска: Ошибка скачивания (${status})`;
+                    }
                 }
             } catch (e) {
-                console.error(e);
-                document.getElementById('megaStatus').textContent = 'Статус: Ошибка сети или файл не найден';
+                console.error("Ошибка при загрузке (NetworkError/CORS):", e);
+                if (!isSilent) {
+                    showNotification('❌ Ошибка сети. Невозможно связаться с Я.Диском. Проверьте соединение/токен.', 'error');
+                    document.getElementById('megaStatus').textContent = 'Статус Я.Диска: Ошибка сети или структуры данных';
+                }
             }
             return false;
         }
+
+        // === АВТОМАТИЧЕСКАЯ СИНХРОНИЗАЦИЯ (ПОЛЛИНГ) ===
+        function startPolling() {
+            // Проверяем облако каждые 10 секунд (10000 мс)
+            pollIntervalId = setInterval(async () => {
+                // Вызываем loadFromYandex в тихом режиме
+                await loadFromYandex(true); 
+                document.getElementById('megaStatus').textContent = 'Статус Я.Диска: Активен (обновление каждые 10 сек)';
+
+            }, 10000); 
+        }
+
 
         // === АДМИНКА АУТЕНТИФИКАЦИЯ (ИСПРАВЛЕНО) ===
         // Функция добавлена, чтобы исправить ошибку 'checkAdminAuth is not defined'
@@ -707,7 +747,10 @@
 
         // === АДМИНКА ===
         window.deleteItem = function(type, id) {
-            if (!confirm('Удалить?')) return;
+            // Замена на кастомный модал
+            const confirmation = window.confirm ? confirm('Удалить?') : true; // Временный обход для iFrame
+
+            if (!confirmation) return;
             let { orders, comments } = getLocalData();
             
             if (type === 'comment') {
@@ -735,7 +778,7 @@
 
         // Обработчики кнопок 'syncBtn' и 'loadBtn' ВОССТАНОВЛЕНЫ
         document.getElementById('syncBtn').addEventListener('click', syncToYandex);
-        document.getElementById('loadBtn').addEventListener('click', loadFromYandex);
+        document.getElementById('loadBtn').addEventListener('click', () => loadFromYandex(false));
         
         // Уведомления
         function showNotification(msg, type) {
@@ -749,7 +792,8 @@
         // Старт
         document.addEventListener('DOMContentLoaded', () => {
             renderAll();
-            loadFromYandex(); // ВОССТАНОВЛЕНО
+            loadFromYandex(false); // Первая загрузка (не тихая)
+            startPolling(); // Запуск автоматической проверки обновлений
         });
     </script>
 </body>
