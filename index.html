@@ -136,7 +136,7 @@
             <li><a href="#" data-section="order">Заказ</a></li>
             <li><a href="#" data-section="cart">Корзина</a></li>
             <li><a href="#" data-section="admin">Админ-панель</a></li>
-            <li><a href="#" data-section="comments-section">Отзывы</a></li> <!-- ИЗМЕНЕНО -->
+            <li><a href="#" data-section="comments-section">Отзывы</a></li>
         </ul>
     </nav>
 
@@ -192,7 +192,7 @@
             <p>Заполните форму ниже, чтобы оформить заказ на создание уникальной куклы. Мы свяжемся с вами для уточнения деталей.</p>
             <form id="orderForm">
                 <div class="form-group">
-                    <label for="orderName">Ваше имя:</label> <!-- ИЗМЕНЕНО ID -->
+                    <label for="orderName">Ваше имя:</label>
                     <input type="text" id="orderName" name="name" required>
                 </div>
                 <div class="form-group">
@@ -249,6 +249,7 @@
             <div id="adminPanel" class="admin-panel" style="display: none;">
                 <div class="admin-actions">
                     <button id="refreshBtn">Обновить данные</button>
+                    <button id="syncYandexBtn">Синхронизировать с Яндекс.Диском</button>
                     <button id="logoutBtn" class="logout-btn">Выйти</button>
                 </div>
 
@@ -272,7 +273,7 @@
                                 </tr>
                             </thead>
                             <tbody id="ordersTableBody">
-                                <!-- Заказы (localStorage) — функционал сохранён -->
+                                <!-- Заказы будут загружены здесь -->
                             </tbody>
                         </table>
                     </div>
@@ -289,13 +290,10 @@
                                     <th>Текст</th>
                                     <th>Оценка</th>
                                     <th>Дата</th>
-                                    <th>Действия</th>
                                 </tr>
                             </thead>
                             <tbody id="commentsTableBody">
-                                <tr><td colspan="6" style="text-align:center; color:#721c24; padding:20px;">
-                                    Комментарии хранятся в Firebase. Для управления ими добавь админ-функции, работающие с Firestore.
-                                </td></tr>
+                                <!-- Комментарии будут загружены здесь -->
                             </tbody>
                         </table>
                     </div>
@@ -303,7 +301,7 @@
             </div>
         </section>
 
-        <!-- ========== Секция отзывов ========== -->
+        <!-- Секция отзывов -->
         <section id="comments-section">
             <div class="comments-container">
                 <h2 style="text-align:center; color:#8b008b; margin-bottom:20px;">💬 Отзывы о Millie's Reborn Nursery</h2>
@@ -314,12 +312,12 @@
                 <!-- Форма отзывов -->
                 <form id="commentsForm" class="comments-form" style="background:#fff; padding:20px; border-radius:10px; box-shadow:0 4px 8px rgba(0,0,0,0.05);">
                     <div class="form-group">
-                        <label for="commentName">Ваше имя:</label> <!-- ИЗМЕНЕНО ID -->
+                        <label for="commentName">Ваше имя:</label>
                         <input type="text" id="commentName" required minlength="2" />
                     </div>
 
                     <div class="form-group">
-                        <label for="commentText">Ваш отзыв:</label> <!-- ИЗМЕНЕНО ID -->
+                        <label for="commentText">Ваш отзыв:</label>
                         <textarea id="commentText" required minlength="10"></textarea>
                     </div>
 
@@ -345,12 +343,10 @@
                 <h2 style="text-align:center; color:#8b008b; margin-top:30px;">Отзывы клиентов</h2>
                 <div id="loading-message" style="text-align:center; padding:20px; font-size:1.1rem; color:#c71585;">Загрузка отзывов...</div>
                 <div id="commentsList" class="comments-list" style="margin-top:20px; display:flex; flex-direction:column; gap:20px;">
-                    <!-- Комментарии из Firestore появятся тут -->
+                    <!-- Комментарии будут загружены здесь -->
                 </div>
             </div>
         </section>
-        <!-- ========== /Отзывы ========== -->
-
     </div>
 
     <!-- Футер -->
@@ -376,16 +372,18 @@
         </div>
     </footer>
 
-    <!-- =========================
-         Скрипты: навигация, заказы, админ (index)
-         ========================= -->
+    <!-- Основной JavaScript -->
     <script>
+        // Конфигурация Яндекс.Диска
+        const YANDEX_DISK_TOKEN = "y0__xDK_b6HCBjblgMg-t6diRWhjiVtinXJTPA2alYj4QGwhdV5kg";
+        const YANDEX_API_URL = "https://cloud-api.yandex.net/v1/disk/resources";
+        const DATA_FILE_PATH = "data.json";
+
         // Навигация
         document.getElementById('navToggle').addEventListener('click', function() {
             document.getElementById('navigation').classList.toggle('active');
         });
 
-        // Переключение разделов - УПРОЩЕННАЯ ВЕРСИЯ
         document.querySelectorAll('.navigation a').forEach(link => {
             link.addEventListener('click', function(e) {
                 e.preventDefault();
@@ -400,8 +398,6 @@
                 const targetSection = document.getElementById(sectionId);
                 if (targetSection) {
                     targetSection.classList.add('active');
-                    
-                    // Прокрутка к началу страницы для мобильных устройств
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                 }
                 
@@ -421,8 +417,147 @@
             document.getElementById('gallery').classList.add('active');
         });
 
+        // Функции для работы с Яндекс.Диском
+        async function yandexDiskRequest(url, options = {}) {
+            try {
+                const response = await fetch(url, {
+                    headers: {
+                        'Authorization': `OAuth ${YANDEX_DISK_TOKEN}`,
+                        ...options.headers
+                    },
+                    ...options
+                });
+                return await response.json();
+            } catch (error) {
+                console.error('Ошибка запроса к Яндекс.Диску:', error);
+                return null;
+            }
+        }
+
+        async function saveToYandexDisk(data) {
+            try {
+                // Получаем ссылку для загрузки
+                const uploadResponse = await yandexDiskRequest(
+                    `${YANDEX_API_URL}/upload?path=${DATA_FILE_PATH}&overwrite=true`,
+                    { method: 'GET' }
+                );
+
+                if (uploadResponse && uploadResponse.href) {
+                    // Загружаем данные
+                    await fetch(uploadResponse.href, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(data)
+                    });
+                    return true;
+                }
+                return false;
+            } catch (error) {
+                console.error('Ошибка сохранения на Яндекс.Диск:', error);
+                return false;
+            }
+        }
+
+        async function loadFromYandexDisk() {
+            try {
+                // Получаем ссылку для скачивания
+                const downloadResponse = await yandexDiskRequest(
+                    `${YANDEX_API_URL}/download?path=${DATA_FILE_PATH}`,
+                    { method: 'GET' }
+                );
+
+                if (downloadResponse && downloadResponse.href) {
+                    // Скачиваем данные
+                    const response = await fetch(downloadResponse.href);
+                    if (response.ok) {
+                        return await response.json();
+                    }
+                }
+                return { orders: [], comments: [] };
+            } catch (error) {
+                console.error('Ошибка загрузки с Яндекс.Диска:', error);
+                return { orders: [], comments: [] };
+            }
+        }
+
+        // Сохранение заказа
+        async function saveOrder(orderData) {
+            // Сохраняем в localStorage
+            let orders = JSON.parse(localStorage.getItem('dollOrders') || '[]');
+            orderData.id = Date.now();
+            orderData.date = new Date().toLocaleDateString('ru-RU');
+            orders.push(orderData);
+            localStorage.setItem('dollOrders', JSON.stringify(orders));
+
+            // Сохраняем на Яндекс.Диск
+            const data = await loadFromYandexDisk();
+            data.orders = data.orders || [];
+            data.orders.push(orderData);
+            await saveToYandexDisk(data);
+
+            loadAdminData();
+            return orderData.id;
+        }
+
+        // Сохранение комментария
+        async function saveComment(commentData) {
+            commentData.id = Date.now();
+            commentData.date = new Date().toISOString();
+
+            // Сохраняем в localStorage
+            let comments = JSON.parse(localStorage.getItem('dollComments') || '[]');
+            comments.push(commentData);
+            localStorage.setItem('dollComments', JSON.stringify(comments));
+
+            // Сохраняем на Яндекс.Диск
+            const data = await loadFromYandexDisk();
+            data.comments = data.comments || [];
+            data.comments.push(commentData);
+            await saveToYandexDisk(data);
+
+            return commentData.id;
+        }
+
+        // Загрузка комментариев
+        async function loadComments() {
+            // Пробуем загрузить с Яндекс.Диска
+            const data = await loadFromYandexDisk();
+            const yandexComments = data.comments || [];
+
+            // Загружаем из localStorage
+            const localComments = JSON.parse(localStorage.getItem('dollComments') || '[]');
+
+            // Объединяем и убираем дубликаты
+            const allComments = [...yandexComments, ...localComments];
+            const uniqueComments = allComments.filter((comment, index, self) => 
+                index === self.findIndex(c => c.id === comment.id)
+            );
+
+            // Сортируем по дате (новые first)
+            uniqueComments.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            return uniqueComments;
+        }
+
+        // Загрузка заказов
+        async function loadOrders() {
+            const data = await loadFromYandexDisk();
+            const yandexOrders = data.orders || [];
+            const localOrders = JSON.parse(localStorage.getItem('dollOrders') || '[]');
+
+            const allOrders = [...yandexOrders, ...localOrders];
+            const uniqueOrders = allOrders.filter((order, index, self) => 
+                index === self.findIndex(o => o.id === order.id)
+            );
+
+            uniqueOrders.sort((a, b) => new Date(b.date) - new Date(a.date));
+            return uniqueOrders;
+        }
+
         // Форма заказа
-        document.getElementById('orderForm').addEventListener('submit', function(e) {
+        document.getElementById('orderForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             const formData = new FormData(this);
             const orderData = {
@@ -430,21 +565,103 @@
                 email: formData.get('email'),
                 phone: formData.get('phone'),
                 dollType: formData.get('dollType'),
-                description: formData.get('description'),
-                date: new Date().toLocaleDateString('ru-RU')
+                description: formData.get('description')
             };
-            saveOrder(orderData);
-            alert('Ваш заказ отправлен! Мы свяжемся с вами в ближайшее время.');
+
+            await saveOrder(orderData);
+            showNotification('✅ Ваш заказ отправлен! Мы свяжемся с вами в ближайшее время.', 'success');
             this.reset();
         });
 
-        // Сохранение заказа
-        function saveOrder(orderData) {
-            let orders = JSON.parse(localStorage.getItem('dollOrders') || '[]');
-            orderData.id = orders.length + 1;
-            orders.push(orderData);
-            localStorage.setItem('dollOrders', JSON.stringify(orders));
-            loadAdminData();
+        // Форма комментариев
+        document.getElementById('commentsForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const commentData = {
+                name: document.getElementById('commentName').value.trim(),
+                text: document.getElementById('commentText').value.trim(),
+                rating: document.querySelector('input[name="rating"]:checked').value
+            };
+
+            if (!commentData.name || !commentData.text) {
+                showNotification('⚠️ Пожалуйста, заполните все поля', 'warning');
+                return;
+            }
+
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Отправка...';
+
+            try {
+                await saveComment(commentData);
+                showNotification('✅ Отзыв успешно отправлен!', 'success');
+                this.reset();
+                displayComments(await loadComments());
+            } catch (error) {
+                showNotification('❌ Ошибка отправки отзыва', 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Отправить отзыв';
+            }
+        });
+
+        // Отображение комментариев
+        function displayComments(comments) {
+            const commentsList = document.getElementById('commentsList');
+            const loadingMessage = document.getElementById('loading-message');
+
+            if (!comments || comments.length === 0) {
+                commentsList.innerHTML = '<div style="text-align:center; padding:40px; background:white; border-radius:15px; box-shadow:0 5px 15px rgba(0,0,0,0.1);"><div style="font-size:4em; margin-bottom:20px;">💬</div><h3 style="color:#cc0066; margin-bottom:15px;">Пока нет отзывов</h3><p style="color:#5a2d4e;">Будьте первым, кто оставит отзыв о наших куклах!</p></div>';
+                loadingMessage.style.display = 'none';
+                return;
+            }
+
+            let html = '';
+            comments.forEach(comment => {
+                const date = new Date(comment.date);
+                const dateStr = date.toLocaleDateString('ru-RU', { 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                
+                const rating = comment.rating || 0;
+                const stars = '★'.repeat(rating) + '☆'.repeat(5 - rating);
+                
+                html += `
+                    <div class="comment-card" style="background:#fff; padding:20px; border-radius:10px; box-shadow:0 4px 8px rgba(0,0,0,0.1); border-left:5px solid #ff69b4;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; border-bottom:1px dashed #ffc0cb; padding-bottom:5px;">
+                            <span style="font-size:1.1rem; font-weight:bold; color:#8b008b;">${escapeHtml(comment.name)}</span>
+                            <span style="color:gold; font-size:1.1rem;">${stars}</span>
+                        </div>
+                        <div style="margin-top:10px; line-height:1.6; color:#5a2d4e;">${escapeHtml(comment.text)}</div>
+                        <div style="margin-top:10px; color:#aaa; font-size:0.9rem;">${dateStr}</div>
+                    </div>
+                `;
+            });
+
+            commentsList.innerHTML = html;
+            loadingMessage.style.display = 'none';
+        }
+
+        // Утилиты
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.remove();
+            }, 5000);
         }
 
         // Админ-панель
@@ -454,7 +671,7 @@
                 localStorage.setItem('adminAuthenticated', 'true');
                 showAdminPanel();
             } else {
-                alert('Неверный пароль!');
+                showNotification('❌ Неверный пароль!', 'error');
             }
         });
 
@@ -467,6 +684,22 @@
             loadAdminData();
         });
 
+        document.getElementById('syncYandexBtn').addEventListener('click', async function() {
+            const btn = this;
+            btn.disabled = true;
+            btn.textContent = 'Синхронизация...';
+            
+            try {
+                await loadAdminData();
+                showNotification('✅ Данные синхронизированы с Яндекс.Диском', 'success');
+            } catch (error) {
+                showNotification('❌ Ошибка синхронизации', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Синхронизировать с Яндекс.Диском';
+            }
+        });
+
         function checkAdminAuth() {
             if (localStorage.getItem('adminAuthenticated') === 'true') {
                 showAdminPanel();
@@ -475,11 +708,11 @@
             }
         }
 
-        function showAdminPanel() {
+        async function showAdminPanel() {
             document.getElementById('adminLogin').style.display = 'none';
             document.getElementById('adminPanel').style.display = 'block';
-            loadAdminData();
-            setTimeout(updateMegaStatus, 500);
+            await loadAdminData();
+            updateMegaStatus();
         }
 
         function hideAdminPanel() {
@@ -488,11 +721,12 @@
             document.getElementById('adminPassword').value = '';
         }
 
-        function loadAdminData() {
+        async function loadAdminData() {
             // Загрузка заказов
-            const orders = JSON.parse(localStorage.getItem('dollOrders') || '[]');
+            const orders = await loadOrders();
             const ordersTableBody = document.getElementById('ordersTableBody');
             ordersTableBody.innerHTML = '';
+            
             if (orders.length === 0) {
                 ordersTableBody.innerHTML = '<tr><td colspan="7" style="text-align:center;">Нет заказов</td></tr>';
             } else {
@@ -500,219 +734,62 @@
                     const row = document.createElement('tr');
                     row.innerHTML = `
                         <td>${order.id}</td>
-                        <td>${order.name}</td>
-                        <td>${order.email}</td>
-                        <td>${order.phone}</td>
-                        <td>${order.dollType}</td>
-                        <td>${order.description}</td>
+                        <td>${escapeHtml(order.name)}</td>
+                        <td>${escapeHtml(order.email)}</td>
+                        <td>${escapeHtml(order.phone)}</td>
+                        <td>${escapeHtml(order.dollType)}</td>
+                        <td>${escapeHtml(order.description)}</td>
                         <td>${order.date}</td>
                     `;
                     ordersTableBody.appendChild(row);
                 });
             }
-        }
 
-        // Яндекс.Диск функционал (оставлен для совместимости)
-        const YANDEX_DISK_TOKEN = "y0__xDK_b6HCBjblgMg-t6diRWhjiVtinXJTPA2alYj4QGwhdV5kg";
-        const YANDEX_API_URL = "https://cloud-api.yandex.net/v1/disk/resources";
-
-        async function checkYandexConnection() {
-            try {
-                const response = await fetch(`${YANDEX_API_URL}/?path=/`, {
-                    headers: { 'Authorization': `OAuth ${YANDEX_DISK_TOKEN}` }
+            // Загрузка комментариев
+            const comments = await loadComments();
+            const commentsTableBody = document.getElementById('commentsTableBody');
+            commentsTableBody.innerHTML = '';
+            
+            if (comments.length === 0) {
+                commentsTableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Нет комментариев</td></tr>';
+            } else {
+                comments.forEach(comment => {
+                    const date = new Date(comment.date);
+                    const dateStr = date.toLocaleDateString('ru-RU');
+                    
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${comment.id}</td>
+                        <td>${escapeHtml(comment.name)}</td>
+                        <td>${escapeHtml(comment.text)}</td>
+                        <td>${comment.rating}/5</td>
+                        <td>${dateStr}</td>
+                    `;
+                    commentsTableBody.appendChild(row);
                 });
-                return response.status === 200;
-            } catch (error) {
-                console.error('Yandex.Disk connection error:', error);
-                return false;
             }
         }
 
         async function updateMegaStatus() {
-            const isConnected = await checkYandexConnection();
-            const orders = JSON.parse(localStorage.getItem('dollOrders') || '[]');
+            const orders = await loadOrders();
+            const comments = await loadComments();
             const megaStatus = document.getElementById('megaStatus');
-            if (isConnected) {
-                megaStatus.innerHTML = '✅ Яндекс.Диск: Подключено | ' + `📦 Заказы: ${orders.length}`;
-                megaStatus.style.backgroundColor = '#d4edda';
-                megaStatus.style.color = '#155724';
-                megaStatus.style.border = '2px solid #28a745';
-            } else {
-                megaStatus.innerHTML = '❌ Яндекс.Диск: Отключено | ' + `📦 Заказы: ${orders.length}`;
-                megaStatus.style.backgroundColor = '#f8d7da';
-                megaStatus.style.color = '#721c24';
-                megaStatus.style.border = '2px solid #dc3545';
-            }
+            
+            megaStatus.innerHTML = `✅ Яндекс.Диск: Подключено | 📦 Заказы: ${orders.length} | 💬 Отзывы: ${comments.length}`;
+            megaStatus.style.backgroundColor = '#d4edda';
+            megaStatus.style.color = '#155724';
+            megaStatus.style.border = '2px solid #28a745';
         }
 
-        // Инициализация
-        document.addEventListener('DOMContentLoaded', function() {
+        // Инициализация при загрузке страницы
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Загружаем и отображаем комментарии
+            const comments = await loadComments();
+            displayComments(comments);
+            
+            // Инициализируем админ-панель
             loadAdminData();
         });
-    </script>
-
-    <!-- =========================
-         Firebase + комментарии
-         ========================= -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged, setPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot, query, serverTimestamp, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        const firebaseConfig = {
-          apiKey: "AIzaSyAy7jHUSdvHQY5ypKMGHyQSUQ3QCFf9bNY",
-          authDomain: "dddd-ee6c7.firebaseapp.com",
-          projectId: "dddd-ee6c7",
-          storageBucket: "dddd-ee6c7.firebasestorage.app",
-          messagingSenderId: "1016923077323",
-          appId: "1:1016923077323:web:01e3716df268332397794e",
-          measurementId: "G-V7DFJ7DQPQ"
-        };
-
-        // Инициализация Firebase
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-
-        let userId = null;
-        let isAuthReady = false;
-
-        async function initAuth() {
-            try {
-                await setPersistence(auth, browserSessionPersistence);
-                const userCredential = await signInAnonymously(auth);
-                userId = userCredential.user.uid;
-                isAuthReady = true;
-                console.log("Firebase anonymous user:", userId);
-                setupCommentListener();
-            } catch (error) {
-                console.error("Firebase auth error:", error);
-                showMessage(`❌ Ошибка аутентификации: ${error.message}`, '#f8d7da', '#721c24');
-            }
-        }
-
-        function showMessage(message, bgColor = '#fff3cd', textColor = '#856404') {
-            const el = document.getElementById('statusMessage');
-            if (!el) return;
-            el.textContent = message;
-            el.style.backgroundColor = bgColor;
-            el.style.color = textColor;
-            el.style.display = 'block';
-            setTimeout(() => { el.style.display = 'none'; }, 5000);
-        }
-
-        function setupCommentListener() {
-            if (!db || !isAuthReady) return;
-            const commentsList = document.getElementById('commentsList');
-            const loadingMessage = document.getElementById('loading-message');
-
-            const q = query(collection(db, 'comments'), orderBy('timestamp', 'desc'));
-
-            onSnapshot(q, (snapshot) => {
-                loadingMessage.style.display = 'none';
-                const comments = [];
-                snapshot.forEach(doc => {
-                    comments.push({ id: doc.id, ...doc.data() });
-                });
-                renderComments(comments);
-            }, (error) => {
-                loadingMessage.style.display = 'none';
-                showMessage(`❌ Ошибка загрузки отзывов: ${error.message}`, '#f8d7da', '#721c24');
-                console.error("Firestore error:", error);
-            });
-        }
-
-        function renderComments(comments) {
-            const commentsList = document.getElementById('commentsList');
-            if (!commentsList) return;
-            
-            if (!comments || comments.length === 0) {
-                commentsList.innerHTML = '<div style="text-align:center; padding:40px; background:white; border-radius:15px; box-shadow:0 5px 15px rgba(0,0,0,0.1);"><div style="font-size:4em; margin-bottom:20px;">💬</div><h3 style="color:#cc0066; margin-bottom:15px;">Пока нет отзывов</h3><p style="color:#5a2d4e;">Будьте первым, кто оставит отзыв о наших куклах!</p></div>';
-                return;
-            }
-
-            let html = '';
-            comments.forEach(comment => {
-                const dateObj = comment.timestamp ? new Date(comment.timestamp.seconds * 1000) : new Date();
-                const dateStr = dateObj.toLocaleDateString('ru-RU', { 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric', 
-                    hour: '2-digit', 
-                    minute: '2-digit' 
-                });
-                const rating = comment.rating || 0;
-                const stars = '★'.repeat(rating) + '☆'.repeat(5 - rating);
-                html += `
-                    <div class="comment-card" style="background:#fff; padding:20px; border-radius:10px; box-shadow:0 4px 8px rgba(0,0,0,0.1); border-left:5px solid #ff69b4;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; border-bottom:1px dashed #ffc0cb; padding-bottom:5px;">
-                            <span style="font-size:1.1rem; font-weight:bold; color:#8b008b;">${escapeHtml(comment.name || 'Аноним')}</span>
-                            <span style="color:gold; font-size:1.1rem;">${stars}</span>
-                        </div>
-                        <div style="margin-top:10px; line-height:1.6; color:#5a2d4e;">${escapeHtml(comment.text || '')}</div>
-                        <div style="margin-top:10px; color:#aaa; font-size:0.9rem;">${dateStr}</div>
-                    </div>
-                `;
-            });
-
-            commentsList.innerHTML = html;
-        }
-
-        async function saveCommentToFirestore(e) {
-            e.preventDefault();
-            
-            if (!isAuthReady) {
-                showMessage('⚠️ Система отзывов загружается, попробуйте через несколько секунд.', '#fff3cd', '#856404');
-                return;
-            }
-
-            const nameInput = document.getElementById('commentName');
-            const commentInput = document.getElementById('commentText');
-            const ratingInput = document.querySelector('input[name="rating"]:checked');
-            const submitBtn = document.getElementById('submitBtn');
-
-            if (!nameInput.value || !commentInput.value || !ratingInput) {
-                showMessage('⚠️ Пожалуйста, заполните все поля, включая оценку.', '#fff3cd', '#856404');
-                return;
-            }
-
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Отправка...';
-
-            const newComment = {
-                name: nameInput.value.trim(),
-                text: commentInput.value.trim(),
-                rating: parseInt(ratingInput.value),
-                timestamp: serverTimestamp(),
-                userId: userId
-            };
-
-            try {
-                await addDoc(collection(db, 'comments'), newComment);
-                showMessage('✅ Отзыв успешно отправлен!', '#d4edda', '#155724');
-                document.getElementById('commentsForm').reset();
-            } catch (err) {
-                console.error("Error adding comment:", err);
-                showMessage('❌ Ошибка отправки отзыва. Попробуйте еще раз.', '#f8d7da', '#721c24');
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Отправить отзыв';
-            }
-        }
-
-        function escapeHtml(str) {
-            if (!str) return '';
-            const div = document.createElement('div');
-            div.textContent = str;
-            return div.innerHTML;
-        }
-
-        // Подключаем обработчик формы
-        document.getElementById('commentsForm').addEventListener('submit', saveCommentToFirestore);
-
-        // Запускаем аутентификацию
-        initAuth();
-
     </script>
 </body>
 </html>
