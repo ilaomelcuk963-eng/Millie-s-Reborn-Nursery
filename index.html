@@ -1,13 +1,18 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Millie's Reborn Nursery</title>
-    <link rel="shortcut icon" href="/static/free-icon-doll-8013731.png" type="image/x-icon">
-
+      <link rel="shortcut icon" href="./free-icon-doll-8013731.png" type="image/x-icon">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Arial', sans-serif; }
+        /* Общие стили */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
 
         body {
             background-color: #ffe6f2;
@@ -15,124 +20,338 @@
             overflow-x: hidden;
         }
 
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes slideIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
-
-        .background {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path fill="%23ff99cc" d="M50,20 C60,10 75,10 85,20 C95,30 95,45 85,55 L50,90 L15,55 C5,45 5,30 15,20 C25,10 40,10 50,20 Z" /></svg>');
-            background-size: 200px; opacity: 0.2; filter: blur(5px); z-index: -1;
+        /* Анимации */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
 
+        @keyframes slideIn {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        /* Фон с размытым сердечком */
+        .background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path fill="%23ff99cc" d="M50,20 C60,10 75,10 85,20 C95,30 95,45 85,55 L50,90 L15,55 C5,45 5,30 15,20 C25,10 40,10 50,20 Z" /></svg>');
+            background-size: 200px;
+            opacity: 0.2;
+            filter: blur(5px);
+            z-index: -1;
+        }
+
+        /* Навигация */
         .nav-toggle {
-            position: fixed; top: 20px; right: 20px; z-index: 1000; cursor: pointer;
-            background-color: #ff66a3; border-radius: 50%; width: 50px; height: 50px;
-            display: flex; justify-content: center; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            cursor: pointer;
+            background-color: #ff66a3;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
             transition: all 0.3s ease;
         }
-        .nav-toggle:hover { background-color: #ff3385; animation: pulse 1s infinite; }
-        .nav-toggle span { display: block; width: 6px; height: 6px; background-color: white; border-radius: 50%; margin: 2px; }
+
+        .nav-toggle:hover {
+            background-color: #ff3385;
+            animation: pulse 1s infinite;
+        }
+
+        .nav-toggle span {
+            display: block;
+            width: 6px;
+            height: 6px;
+            background-color: white;
+            border-radius: 50%;
+            margin: 2px;
+        }
 
         .navigation {
-            position: fixed; top: 0; right: -300px; width: 300px; height: 100%;
-            background-color: rgba(255, 153, 204, 0.95); z-index: 999; transition: right 0.5s ease;
-            padding: 80px 20px 20px; box-shadow: -5px 0 15px rgba(0,0,0,0.1);
-        }
-        .navigation.active { right: 0; }
-        .navigation ul { list-style: none; }
-        .navigation li { margin-bottom: 15px; }
-        .navigation a { color: #5a2d4e; text-decoration: none; font-size: 18px; display: block; padding: 10px 15px; border-radius: 5px; transition: all 0.3s ease; }
-        .navigation a:hover { background-color: #ff99cc; color: white; transform: translateX(5px); }
-
-        .content { max-width: 1200px; margin: 0 auto; padding: 20px; }
-        section { display: none; padding: 40px 20px; animation: fadeIn 0.8s ease; }
-        section.active { display: block; }
-        h1,h2,h3 { color: #cc0066; margin-bottom: 20px; text-align: center; animation: slideIn 0.8s ease; }
-        p { line-height: 1.6; margin-bottom: 15px; text-align: center; }
-
-        .gallery {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; margin-top: 30px;
-        }
-        .photo-frame { position: relative; background-color: white; border-radius: 10px; padding: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); transition: all 0.3s ease; animation: slideIn 0.8s ease; }
-        .photo-frame:hover { transform: translateY(-10px); box-shadow: 0 15px 30px rgba(0,0,0,0.2); }
-        .photo-frame img { width: 100%; height: 200px; object-fit: cover; border-radius: 5px; }
-
-        form { max-width: 600px; margin: 0 auto; background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        .form-group { margin-bottom: 20px; }
-        label { display:block; margin-bottom:8px; color:#cc0066; font-weight:bold; }
-        input, textarea, select { width:100%; padding:10px 15px; border:1px solid #ff99cc; border-radius:5px; font-size:16px; transition:all 0.3s ease; }
-        input:focus, textarea:focus, select:focus { outline:none; border-color:#cc0066; box-shadow:0 0 5px rgba(204,0,102,0.3); }
-        button { background-color:#ff66a3; color:white; border:none; padding:12px 25px; border-radius:5px; cursor:pointer; font-size:16px; transition:all 0.3s ease; display:block; margin:0 auto; }
-        button:hover { background-color:#cc0066; transform:scale(1.05); }
-
-        .admin-panel { background-color:white; border-radius:10px; padding:30px; box-shadow:0 5px 15px rgba(0,0,0,0.1); margin-top:20px; }
-        .admin-table { width:100%; border-collapse:collapse; margin-top:15px; }
-        .admin-table th, .admin-table td { border:1px solid #ff99cc; padding:10px; text-align:left; }
-        .admin-table th { background-color:#ff99cc; color:white; }
-        .admin-table tr:nth-child(even) { background-color:#ffe6f2; }
-
-        footer { background-color:#ff99cc; color:white; padding:30px 20px; text-align:center; margin-top:50px; }
-        .contact-info { display:flex; justify-content:space-around; flex-wrap:wrap; margin-bottom:20px; }
-        .contact-item { margin:10px 20px; }
-        .social-links a { color:white; font-size:24px; margin:0 10px; transition:all 0.3s ease; }
-        .social-links a:hover { color:#cc0066; transform:scale(1.2); }
-
-        #comments-section { background: linear-gradient(135deg, #fff5f9 0%, #ffe6f2 100%); padding: 60px 20px; margin-top: 50px; scroll-margin-top: 80px; }
-
-        .notification {
-            position: fixed; top: 20px; right: 20px; padding: 15px 25px; border-radius: 10px; color: white; font-weight: bold; z-index: 10000; animation: slideIn 0.3s ease; max-width: 300px;
-        }
-        .notification.success { background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%); }
-        .notification.error { background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%); }
-        .notification.warning { background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%); }
-
-        header.site-header {
-            text-align: center; padding: 40px 20px; background: linear-gradient(180deg, #ffc0cb, #ffe6f2);
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1); animation: fadeIn 1s ease-in-out; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px;
-        }
-        header.site-header h1 { font-size: 2.5rem; color: #8b008b; text-shadow: 2px 2px 4px rgba(255,255,255,0.5); }
-        .comments-container {
-            max-width: 1000px; margin: 30px auto; padding: 30px; animation: slideIn 1s ease-out 0.5s forwards; opacity: 1;
-            background-color: rgba(255,255,255,0.9); border-radius: 15px; box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            position: fixed;
+            top: 0;
+            right: -300px;
+            width: 300px;
+            height: 100%;
+            background-color: rgba(255, 153, 204, 0.95);
+            z-index: 999;
+            transition: right 0.5s ease;
+            padding: 80px 20px 20px;
+            box-shadow: -5px 0 15px rgba(0,0,0,0.1);
         }
 
-        .center { text-align:center; }
-        
-        .rating-group { display: flex; gap: 10px; align-items: center; margin-top: 5px; }
-        .rating-group input[type="radio"] { display: none; }
-        .rating-group label { 
-            cursor: pointer; 
-            padding: 5px 10px; 
-            background: #ffe6f2; 
-            border-radius: 5px; 
+        .navigation.active {
+            right: 0;
+        }
+
+        .navigation ul {
+            list-style: none;
+        }
+
+        .navigation li {
+            margin-bottom: 15px;
+        }
+
+        .navigation a {
+            color: #5a2d4e;
+            text-decoration: none;
+            font-size: 18px;
+            display: block;
+            padding: 10px 15px;
+            border-radius: 5px;
             transition: all 0.3s ease;
         }
-        .rating-group input[type="radio"]:checked + label {
-            background: #ff66a3;
+
+        .navigation a:hover {
+            background-color: #ff99cc;
             color: white;
+            transform: translateX(5px);
+        }
+
+        /* Основной контент */
+        .content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        section {
+            display: none;
+            padding: 40px 20px;
+            animation: fadeIn 0.8s ease;
+        }
+
+        section.active {
+            display: block;
+        }
+
+        h1, h2, h3 {
+            color: #cc0066;
+            margin-bottom: 20px;
+            text-align: center;
+            animation: slideIn 0.8s ease;
+        }
+
+        p {
+            line-height: 1.6;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        /* Галерея */
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .photo-frame {
+            position: relative;
+            background-color: white;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            animation: slideIn 0.8s ease;
+        }
+
+        .photo-frame:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+        }
+
+        .photo-frame img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 5px;
+        }
+
+        /* Формы */
+        form {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #cc0066;
+            font-weight: bold;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid #ff99cc;
+            border-radius: 5px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #cc0066;
+            box-shadow: 0 0 5px rgba(204, 0, 102, 0.3);
+        }
+
+        button {
+            background-color: #ff66a3;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            display: block;
+            margin: 0 auto;
+        }
+
+        button:hover {
+            background-color: #cc0066;
+            transform: scale(1.05);
+        }
+
+        /* Корзина */
+        .cart-items {
+            margin-bottom: 30px;
+        }
+
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background-color: white;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .cart-total {
+            text-align: right;
+            font-size: 20px;
+            font-weight: bold;
+            margin-top: 20px;
+            color: #cc0066;
+        }
+
+        /* Комментарии */
+        .comments-section {
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 1px solid #ff99cc;
+        }
+
+        .comment {
+            background-color: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .comment-author {
+            font-weight: bold;
+            color: #cc0066;
+            margin-bottom: 5px;
+        }
+
+        /* Футер */
+        footer {
+            background-color: #ff99cc;
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+            margin-top: 50px;
+        }
+
+        .contact-info {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .contact-item {
+            margin: 10px 20px;
+        }
+
+        .social-links {
+            margin-top: 20px;
+        }
+
+        .social-links a {
+            color: white;
+            font-size: 24px;
+            margin: 0 10px;
+            transition: all 0.3s ease;
+        }
+
+        .social-links a:hover {
+            color: #cc0066;
+            transform: scale(1.2);
+        }
+
+        /* Адаптивность */
+        @media (max-width: 768px) {
+            .gallery {
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            }
+            
+            .contact-info {
+                flex-direction: column;
+                align-items: center;
+            }
         }
     </style>
 </head>
 <body>
     <div class="background"></div>
-
+    
     <!-- Навигация -->
     <div class="nav-toggle" id="navToggle">
-        <span></span><span></span><span></span>
+        <span></span>
+        <span></span>
+        <span></span>
     </div>
-
+    
     <nav class="navigation" id="navigation">
         <ul>
             <li><a href="#" data-section="home">Главная</a></li>
             <li><a href="#" data-section="about">О нас</a></li>
             <li><a href="#" data-section="gallery">Галерея</a></li>
             <li><a href="#" data-section="order">Заказ</a></li>
-            <li><a href="#" data-section="admin">Админ-панель</a></li>
-            <li><a href="#" data-section="comments-section">Отзывы</a></li>
+            <li><a href="#" data-section="cart">Корзина</a></li>
         </ul>
     </nav>
-
+    
     <!-- Основной контент -->
     <div class="content">
         <!-- Главная -->
@@ -144,7 +363,7 @@
                 <button id="exploreBtn">Исследовать галерею</button>
             </div>
         </section>
-
+        
         <!-- О нас -->
         <section id="about">
             <h2>О нас</h2>
@@ -152,41 +371,41 @@
             <p>Каждая наша кукла - это произведение искусства, созданное с любовью и вниманием к деталям. Мы используем только качественные материалы и безопасные краски.</p>
             <p>Наши куклы могут быть выполнены в различных стилях - от классических до современных, от реалистичных до фантазийных.</p>
         </section>
-
+        
         <!-- Галерея -->
         <section id="gallery">
             <h2>Галерея куклочек</h2>
             <p>Здесь вы можете увидеть примеры наших работ. Каждая кукла уникальна и создается индивидуально под заказ.</p>
             <div class="gallery">
                 <div class="photo-frame">
-                    <img src="/static/изображение_viber_2025-11-01_12-52-31-434.jpg" alt="Кукла 1">
+                    <img src="./изображение_viber_2025-11-01_12-52-31-434.jpg" alt="Кукла 1">
                 </div>
                 <div class="photo-frame">
-                    <img src="/static/изображение_viber_2025-11-01_12-52-32-199.jpg" alt="Кукла 2">
+                    <img src="./изображение_viber_2025-11-01_12-52-32-199.jpg" alt="Кукла 2">
                 </div>
                 <div class="photo-frame">
-                    <img src="/static/изображение_viber_2025-11-01_12-52-32-253.jpg" alt="Кукла 3">
+                    <img src="./изображение_viber_2025-11-01_12-52-32-253.jpg" alt="Кукла 3">
                 </div>
                 <div class="photo-frame">
-                    <img src="/static/изображение_viber_2025-11-01_12-52-32-348.jpg" alt="Кукла 4">
+                    <img src="./изображение_viber_2025-11-01_12-52-32-348.jpg" alt="Кукла 4">
                 </div>
                 <div class="photo-frame">
-                    <img src="/static/изображение_viber_2025-11-01_12-52-32-408.jpg" alt="Кукла 5">
+                    <img src="./изображение_viber_2025-11-01_12-52-32-408.jpg" alt="Кукла 5">
                 </div>
                 <div class="photo-frame">
-                    <img src="/static/изображение_viber_2025-11-01_12-52-32-464.jpg" alt="Кукла 6">
+                    <img src="./изображение_viber_2025-11-01_12-52-32-464.jpg" alt="Кукла 6">
                 </div>
             </div>
         </section>
-
+        
         <!-- Заказ -->
         <section id="order">
             <h2>Оформить заказ</h2>
             <p>Заполните форму ниже, чтобы оформить заказ на создание уникальной куклы. Мы свяжемся с вами для уточнения деталей.</p>
             <form id="orderForm">
                 <div class="form-group">
-                    <label for="orderName">Ваше имя:</label>
-                    <input type="text" id="orderName" name="name" required>
+                    <label for="name">Ваше имя:</label>
+                    <input type="text" id="name" name="name" required>
                 </div>
                 <div class="form-group">
                     <label for="email">Email:</label>
@@ -213,508 +432,124 @@
                 <button type="submit">Отправить заказ</button>
             </form>
         </section>
-
-        <!-- Админ-панель -->
-        <section id="admin">
-            <h2>Админ-панель</h2>
-
-            <div id="adminLogin" class="admin-login">
-                <h3>Вход в админ-панель</h3>
+        
+        <!-- Корзина -->
+        <section id="cart">
+            <h2>Корзина заказов</h2>
+            <div class="cart-items">
+                <!-- Здесь будут элементы корзины -->
+            </div>
+            <div class="cart-total">
+                Итого: <span id="totalPrice">0</span> руб.
+            </div>
+            <button id="checkoutBtn" style="margin-top: 20px;">Оформить заказ</button>
+        </section>
+        
+        <!-- Комментарии -->
+        <div class="comments-section">
+            <h3>Отзывы наших клиентов</h3>
+            <div id="commentsList">
+                <!-- Здесь будут комментарии -->
+            </div>
+            <form id="commentForm" style="margin-top: 20px;">
                 <div class="form-group">
-                    <label for="adminPassword">Пароль:</label>
-                    <input type="password" id="adminPassword" placeholder="Введите пароль" required>
+                    <label for="commentName">Ваше имя:</label>
+                    <input type="text" id="commentName" name="commentName" required>
                 </div>
-                <button id="loginBtn">Войти</button>
-            </div>
-
-            <div id="adminPanel" class="admin-panel" style="display: none;">
-                <div class="admin-actions">
-                    <button id="refreshBtn">Обновить данные</button>
-                    <button id="syncYandexBtn">Синхронизировать с Яндекс.Диском</button>
-                    <button id="logoutBtn" class="logout-btn">Выйти</button>
+                <div class="form-group">
+                    <label for="commentText">Ваш отзыв:</label>
+                    <textarea id="commentText" name="commentText" rows="3" required></textarea>
                 </div>
-
-                <div id="megaStatus" style="margin: 15px 0; padding: 12px; border-radius: 8px; text-align: center; font-weight: bold;">
-                    <!-- Статус будет отображён здесь -->
-                </div>
-
-                <div class="admin-section">
-                    <h3>Заказы</h3>
-                    <div id="ordersList">
-                        <table class="admin-table">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Имя</th>
-                                    <th>Email</th>
-                                    <th>Телефон</th>
-                                    <th>Тип куклы</th>
-                                    <th>Описание</th>
-                                    <th>Дата</th>
-                                </tr>
-                            </thead>
-                            <tbody id="ordersTableBody">
-                                <!-- Заказы будут загружены здесь -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div class="admin-section">
-                    <h3>Комментарии</h3>
-                    <div id="commentsAdminList">
-                        <table class="admin-table">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Имя</th>
-                                    <th>Текст</th>
-                                    <th>Оценка</th>
-                                    <th>Дата</th>
-                                </tr>
-                            </thead>
-                            <tbody id="commentsTableBody">
-                                <!-- Комментарии будут загружены здесь -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Секция отзывов -->
-        <section id="comments-section">
-            <div class="comments-container">
-                <h2 style="text-align:center; color:#8b008b; margin-bottom:20px;">💬 Отзывы о Millie's Reborn Nursery</h2>
-
-                <!-- Статусное окно -->
-                <div id="statusMessage" style="margin-bottom:15px; display:none; padding:10px; border-radius:5px;"></div>
-
-                <!-- Форма отзывов -->
-                <form id="commentsForm" class="comments-form" style="background:#fff; padding:20px; border-radius:10px; box-shadow:0 4px 8px rgba(0,0,0,0.05);">
-                    <div class="form-group">
-                        <label for="commentName">Ваше имя:</label>
-                        <input type="text" id="commentName" required minlength="2" />
-                    </div>
-
-                    <div class="form-group">
-                        <label for="commentText">Ваш отзыв:</label>
-                        <textarea id="commentText" required minlength="10"></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Оценка:</label>
-                        <div class="rating-group">
-                            <input type="radio" id="rating5" name="rating" value="5" required>
-                            <label for="rating5">5</label>
-                            <input type="radio" id="rating4" name="rating" value="4">
-                            <label for="rating4">4</label>
-                            <input type="radio" id="rating3" name="rating" value="3">
-                            <label for="rating3">3</label>
-                            <input type="radio" id="rating2" name="rating" value="2">
-                            <label for="rating2">2</label>
-                            <input type="radio" id="rating1" name="rating" value="1">
-                            <label for="rating1">1</label>
-                        </div>
-                    </div>
-
-                    <button type="submit" class="submit-btn" id="submitBtn">Отправить отзыв</button>
-                </form>
-
-                <h2 style="text-align:center; color:#8b008b; margin-top:30px;">Отзывы клиентов</h2>
-                <div id="loading-message" style="text-align:center; padding:20px; font-size:1.1rem; color:#c71585;">Загрузка отзывов...</div>
-                <div id="commentsList" class="comments-list" style="margin-top:20px; display:flex; flex-direction:column; gap:20px;">
-                    <!-- Комментарии будут загружены здесь -->
-                </div>
-            </div>
-        </section>
+                <button type="submit">Добавить отзыв</button>
+            </form>
+        </div>
     </div>
-
+    
     <!-- Футер -->
     <footer>
         <div class="contact-info">
             <div class="contact-item">
-                <h3>Телефон</h3>
+                <h3>Телефон я помню</h3>
                 <p>+380977057272</p>
             </div>
             <div class="contact-item">
                 <h3>Email</h3>
-                <p>как хочешь</p>
+                <p> как хочешь</p>
             </div>
             <div class="contact-item">
                 <h3>Адрес</h3>
-                <p>Украина</p>
+                <p>украина</p>
             </div>
         </div>
         <div class="social-links">
-            <a href="https://www.tiktok.com/@reborn_mydreams?_r=1&_t=ZN-912aH9jkxuR">Тикток</a>
-            <a href="https://www.instagram.com/millie_reborn_ua?igsh=cGpxYzBjY2M1N245">Instagram</a>
-            <a href="https://t.me/reborn_nursery">Телеграм</a>
+            <a href="#">VK потом вставишь свою</a>
+            <a href="#">Instagram</a>
+            <a href="#">в дс решим</a>
         </div>
     </footer>
 
-    <!-- JavaScript -->
     <script>
-        // Конфигурация API
-        const API_BASE_URL = window.location.origin;
-
         // Навигация
         document.getElementById('navToggle').addEventListener('click', function() {
             document.getElementById('navigation').classList.toggle('active');
         });
 
+        // Переключение разделов
         document.querySelectorAll('.navigation a').forEach(link => {
             link.addEventListener('click', function(e) {
                 e.preventDefault();
                 const sectionId = this.getAttribute('data-section');
                 
-                // Скрыть все секции
+                // Скрыть все разделы
                 document.querySelectorAll('section').forEach(section => {
                     section.classList.remove('active');
                 });
                 
-                // Показать целевую секцию
-                const targetSection = document.getElementById(sectionId);
-                if (targetSection) {
-                    targetSection.classList.add('active');
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                }
+                // Показать выбранный раздел
+                document.getElementById(sectionId).classList.add('active');
                 
-                // Закрыть навигационное меню
+                // Закрыть навигацию
                 document.getElementById('navigation').classList.remove('active');
-                
-                // Специальная обработка для админ-панели
-                if (sectionId === 'admin') {
-                    checkAdminAuth();
-                }
-                
-                // Загрузка комментариев при переходе в секцию отзывов
-                if (sectionId === 'comments-section') {
-                    loadAndDisplayComments();
-                }
             });
         });
 
-        // "Исследовать галерею"
+        // Кнопка "Исследовать галерею"
         document.getElementById('exploreBtn').addEventListener('click', function() {
-            document.querySelectorAll('section').forEach(section => section.classList.remove('active'));
+            document.querySelectorAll('section').forEach(section => {
+                section.classList.remove('active');
+            });
             document.getElementById('gallery').classList.add('active');
         });
 
-        // Функции для работы с API
-        async function apiRequest(endpoint, options = {}) {
-            try {
-                const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-                    headers: {
-                        'Content-Type': 'application/json',
-                        ...options.headers
-                    },
-                    ...options
-                });
-                return await response.json();
-            } catch (error) {
-                console.error('Ошибка API запроса:', error);
-                return { success: false, error: error.message };
-            }
-        }
-
-        // Сохранение заказа
-        async function saveOrder(orderData) {
-            return await apiRequest('/api/orders', {
-                method: 'POST',
-                body: JSON.stringify(orderData)
-            });
-        }
-
-        // Сохранение комментария
-        async function saveComment(commentData) {
-            return await apiRequest('/api/comments', {
-                method: 'POST',
-                body: JSON.stringify(commentData)
-            });
-        }
-
-        // Загрузка комментариев
-        async function loadComments() {
-            const response = await apiRequest('/api/comments');
-            return Array.isArray(response) ? response : [];
-        }
-
-        // Загрузка заказов
-        async function loadOrders() {
-            const response = await apiRequest('/api/orders');
-            return Array.isArray(response) ? response : [];
-        }
-
-        // Синхронизация
-        async function syncData() {
-            return await apiRequest('/api/sync', { method: 'POST' });
-        }
-
         // Форма заказа
-        document.getElementById('orderForm').addEventListener('submit', async function(e) {
+        document.getElementById('orderForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            const formData = new FormData(this);
-            const orderData = {
-                name: formData.get('name'),
-                email: formData.get('email'),
-                phone: formData.get('phone'),
-                dollType: formData.get('dollType'),
-                description: formData.get('description')
-            };
-
-            const result = await saveOrder(orderData);
-            if (result.success) {
-                showNotification('✅ Ваш заказ отправлен! Мы свяжемся с вами в ближайшее время.', 'success');
-                this.reset();
-                if (document.getElementById('adminPanel').style.display !== 'none') {
-                    await loadAdminData();
-                }
-            } else {
-                showNotification('❌ Ошибка отправки заказа', 'error');
-            }
+            alert('Ваш заказ отправлен! Мы свяжемся с вами в ближайшее время.');
+            this.reset();
         });
 
         // Форма комментариев
-        document.getElementById('commentsForm').addEventListener('submit', async function(e) {
+        document.getElementById('commentForm').addEventListener('submit', function(e) {
             e.preventDefault();
+            const name = document.getElementById('commentName').value;
+            const text = document.getElementById('commentText').value;
             
-            const commentData = {
-                name: document.getElementById('commentName').value.trim(),
-                text: document.getElementById('commentText').value.trim(),
-                rating: document.querySelector('input[name="rating"]:checked').value
-            };
-
-            if (!commentData.name || !commentData.text) {
-                showNotification('⚠️ Пожалуйста, заполните все поля', 'warning');
-                return;
-            }
-
-            const submitBtn = document.getElementById('submitBtn');
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Отправка...';
-
-            try {
-                const result = await saveComment(commentData);
-                if (result.success) {
-                    showNotification('✅ Отзыв успешно отправлен!', 'success');
-                    this.reset();
-                    await loadAndDisplayComments();
-                    if (document.getElementById('adminPanel').style.display !== 'none') {
-                        await loadAdminData();
-                    }
-                } else {
-                    showNotification('❌ Ошибка отправки отзыва', 'error');
-                }
-            } catch (error) {
-                showNotification('❌ Ошибка отправки отзыва', 'error');
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Отправить отзыв';
-            }
-        });
-
-        // Отображение комментариев
-        function displayComments(comments) {
-            const commentsList = document.getElementById('commentsList');
-            const loadingMessage = document.getElementById('loading-message');
-
-            if (!comments || comments.length === 0) {
-                commentsList.innerHTML = '<div style="text-align:center; padding:40px; background:white; border-radius:15px; box-shadow:0 5px 15px rgba(0,0,0,0.1);"><div style="font-size:4em; margin-bottom:20px;">💬</div><h3 style="color:#cc0066; margin-bottom:15px;">Пока нет отзывов</h3><p style="color:#5a2d4e;">Будьте первым, кто оставит отзыв о наших куклах!</p></div>';
-                loadingMessage.style.display = 'none';
-                return;
-            }
-
-            let html = '';
-            comments.forEach(comment => {
-                const date = new Date(comment.date);
-                const dateStr = date.toLocaleDateString('ru-RU', { 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                });
-                
-                const rating = comment.rating || 0;
-                const stars = '★'.repeat(rating) + '☆'.repeat(5 - rating);
-                
-                html += `
-                    <div class="comment-card" style="background:#fff; padding:20px; border-radius:10px; box-shadow:0 4px 8px rgba(0,0,0,0.1); border-left:5px solid #ff69b4;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; border-bottom:1px dashed #ffc0cb; padding-bottom:5px;">
-                            <span style="font-size:1.1rem; font-weight:bold; color:#8b008b;">${escapeHtml(comment.name)}</span>
-                            <span style="color:gold; font-size:1.1rem;">${stars}</span>
-                        </div>
-                        <div style="margin-top:10px; line-height:1.6; color:#5a2d4e;">${escapeHtml(comment.text)}</div>
-                        <div style="margin-top:10px; color:#aaa; font-size:0.9rem;">${dateStr}</div>
-                    </div>
+            if (name && text) {
+                const commentDiv = document.createElement('div');
+                commentDiv.className = 'comment';
+                commentDiv.innerHTML = `
+                    <div class="comment-author">${name}</div>
+                    <div class="comment-text">${text}</div>
                 `;
-            });
-
-            commentsList.innerHTML = html;
-            loadingMessage.style.display = 'none';
-        }
-
-        // Загрузка и отображение комментариев
-        async function loadAndDisplayComments() {
-            const comments = await loadComments();
-            displayComments(comments);
-        }
-
-        // Утилиты
-        function escapeHtml(str) {
-            const div = document.createElement('div');
-            div.textContent = str;
-            return div.innerHTML;
-        }
-
-        function showNotification(message, type = 'info') {
-            // Удаляем существующие уведомления
-            document.querySelectorAll('.notification').forEach(notification => {
-                notification.remove();
-            });
-
-            const notification = document.createElement('div');
-            notification.className = `notification ${type}`;
-            notification.textContent = message;
-            document.body.appendChild(notification);
-
-            setTimeout(() => {
-                if (notification.parentNode) {
-                    notification.remove();
-                }
-            }, 5000);
-        }
-
-        // Админ-панель
-        document.getElementById('loginBtn').addEventListener('click', function() {
-            const password = document.getElementById('adminPassword').value;
-            if (password === '1488') {
-                localStorage.setItem('adminAuthenticated', 'true');
-                showAdminPanel();
-            } else {
-                showNotification('❌ Неверный пароль!', 'error');
+                
+                document.getElementById('commentsList').prepend(commentDiv);
+                this.reset();
             }
         });
 
-        document.getElementById('logoutBtn').addEventListener('click', function() {
-            localStorage.removeItem('adminAuthenticated');
-            hideAdminPanel();
-        });
-
-        document.getElementById('refreshBtn').addEventListener('click', function() {
-            loadAdminData();
-        });
-
-        document.getElementById('syncYandexBtn').addEventListener('click', async function() {
-            const btn = this;
-            btn.disabled = true;
-            btn.textContent = 'Синхронизация...';
-            
-            try {
-                const result = await syncData();
-                if (result.success) {
-                    showNotification('✅ Данные синхронизированы с Яндекс.Диском', 'success');
-                    await loadAdminData();
-                } else {
-                    showNotification('❌ Ошибка синхронизации', 'error');
-                }
-            } catch (error) {
-                showNotification('❌ Ошибка синхронизации', 'error');
-            } finally {
-                btn.disabled = false;
-                btn.textContent = 'Синхронизировать с Яндекс.Диском';
-            }
-        });
-
-        function checkAdminAuth() {
-            if (localStorage.getItem('adminAuthenticated') === 'true') {
-                showAdminPanel();
-            } else {
-                hideAdminPanel();
-            }
-        }
-
-        async function showAdminPanel() {
-            document.getElementById('adminLogin').style.display = 'none';
-            document.getElementById('adminPanel').style.display = 'block';
-            await loadAdminData();
-            updateMegaStatus();
-        }
-
-        function hideAdminPanel() {
-            document.getElementById('adminLogin').style.display = 'block';
-            document.getElementById('adminPanel').style.display = 'none';
-            document.getElementById('adminPassword').value = '';
-        }
-
-        async function loadAdminData() {
-            // Загрузка заказов
-            const orders = await loadOrders();
-            const ordersTableBody = document.getElementById('ordersTableBody');
-            ordersTableBody.innerHTML = '';
-            
-            if (orders.length === 0) {
-                ordersTableBody.innerHTML = '<tr><td colspan="7" style="text-align:center;">Нет заказов</td></tr>';
-            } else {
-                orders.forEach(order => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${order.id}</td>
-                        <td>${escapeHtml(order.name)}</td>
-                        <td>${escapeHtml(order.email)}</td>
-                        <td>${escapeHtml(order.phone)}</td>
-                        <td>${escapeHtml(order.dollType)}</td>
-                        <td>${escapeHtml(order.description)}</td>
-                        <td>${order.date}</td>
-                    `;
-                    ordersTableBody.appendChild(row);
-                });
-            }
-
-            // Загрузка комментариев
-            const comments = await loadComments();
-            const commentsTableBody = document.getElementById('commentsTableBody');
-            commentsTableBody.innerHTML = '';
-            
-            if (comments.length === 0) {
-                commentsTableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Нет комментариев</td></tr>';
-            } else {
-                comments.forEach(comment => {
-                    const date = new Date(comment.date);
-                    const dateStr = date.toLocaleDateString('ru-RU');
-                    
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${comment.id}</td>
-                        <td>${escapeHtml(comment.name)}</td>
-                        <td>${escapeHtml(comment.text)}</td>
-                        <td>${comment.rating}/5</td>
-                        <td>${dateStr}</td>
-                    `;
-                    commentsTableBody.appendChild(row);
-                });
-            }
-        }
-
-        async function updateMegaStatus() {
-            const orders = await loadOrders();
-            const comments = await loadComments();
-            const megaStatus = document.getElementById('megaStatus');
-            
-            megaStatus.innerHTML = `✅ Яндекс.Диск: Подключено | 📦 Заказы: ${orders.length} | 💬 Отзывы: ${comments.length}`;
-            megaStatus.style.backgroundColor = '#d4edda';
-            megaStatus.style.color = '#155724';
-            megaStatus.style.border = '2px solid #28a745';
-        }
-
-        // Инициализация при загрузке страницы
-        document.addEventListener('DOMContentLoaded', async function() {
-            // Загружаем и отображаем комментарии
-            await loadAndDisplayComments();
-            
-            // Инициализируем админ-панель
-            loadAdminData();
+        // Корзина (упрощенная версия)
+        document.getElementById('checkoutBtn').addEventListener('click', function() {
+            alert('Заказ оформлен! Мы свяжемся с вами для подтверждения.');
         });
     </script>
 </body>
