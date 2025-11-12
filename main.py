@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, jsonify, send_from_directory
+from flask_cors import CORS
 import json
 import os
 import requests
@@ -8,6 +9,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = Flask(__name__)
+CORS(app)  # Добавляем CORS поддержку
 
 # Конфигурация Яндекс.Диска
 YANDEX_DISK_TOKEN = "y0__xDK_b6HCBjblgMg-t6diRWhjiVtinXJTPA2alYj4QGwhdV5kg"
@@ -25,7 +27,10 @@ class YandexDiskManager:
             if method == 'GET':
                 response = requests.get(url, headers=headers)
             elif method == 'PUT':
-                response = requests.put(url, headers=headers, data=data)
+                if isinstance(data, (dict, list)):
+                    response = requests.put(url, headers=headers, json=data)
+                else:
+                    response = requests.put(url, headers=headers, data=data)
             return response
         except Exception as e:
             print(f"Ошибка запроса к Яндекс.Диску: {e}")
@@ -95,73 +100,27 @@ def save_local_data(data):
         print(f"Ошибка сохранения локального файла: {e}")
         return False
 
-def sync_data():
-    """Синхронизирует данные между локальным файлом и Яндекс.Диском"""
-    try:
-        # Загружаем с Яндекс.Диска
-        yandex_data = yandex_disk.load_data()
-        
-        # Загружаем локальные данные
-        local_data = get_local_data()
-        
-        # Объединяем данные (приоритет у более новых записей)
-        merged_data = merge_data(local_data, yandex_data)
-        
-        # Сохраняем объединенные данные
-        save_local_data(merged_data)
-        yandex_disk.save_data(merged_data)
-        
-        return merged_data
-    except Exception as e:
-        print(f"Ошибка синхронизации: {e}")
-        return get_local_data()
-
-def merge_data(local_data, yandex_data):
-    """Объединяет данные из двух источников"""
-    merged = {"orders": [], "comments": []}
-    
-    # Объединяем заказы
-    all_orders = {}
-    for order in local_data.get("orders", []):
-        all_orders[order.get("id")] = order
-    for order in yandex_data.get("orders", []):
-        existing = all_orders.get(order.get("id"))
-        if not existing or (order.get("timestamp", 0) > existing.get("timestamp", 0)):
-            all_orders[order.get("id")] = order
-    
-    # Объединяем комментарии
-    all_comments = {}
-    for comment in local_data.get("comments", []):
-        all_comments[comment.get("id")] = comment
-    for comment in yandex_data.get("comments", []):
-        existing = all_comments.get(comment.get("id"))
-        if not existing or (comment.get("timestamp", 0) > existing.get("timestamp", 0)):
-            all_comments[comment.get("id")] = comment
-    
-    merged["orders"] = list(all_orders.values())
-    merged["comments"] = list(all_comments.values())
-    
-    # Сортируем по дате (новые first)
-    merged["orders"].sort(key=lambda x: x.get("timestamp", 0), reverse=True)
-    merged["comments"].sort(key=lambda x: x.get("timestamp", 0), reverse=True)
-    
-    return merged
-
 @app.route('/')
 def index():
     return render_template('index.html')
 
-@app.route('/api/orders', methods=['POST'])
+@app.route('/api/orders', methods=['POST', 'OPTIONS'])
 def create_order():
     """Создание нового заказа"""
+    if request.method == 'OPTIONS':
+        return '', 200
+        
     try:
         order_data = request.json
+        if not order_data:
+            return jsonify({"success": False, "error": "No data provided"}), 400
+            
         order_data["id"] = int(datetime.now().timestamp() * 1000)
         order_data["timestamp"] = order_data["id"]
         order_data["date"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         
         # Загружаем текущие данные
-        data = sync_data()
+        data = get_local_data()
         data["orders"].append(order_data)
         
         # Сохраняем обновленные данные
@@ -170,19 +129,26 @@ def create_order():
         
         return jsonify({"success": True, "order_id": order_data["id"]})
     except Exception as e:
+        print(f"Ошибка создания заказа: {e}")
         return jsonify({"success": False, "error": str(e)}), 500
 
-@app.route('/api/comments', methods=['POST'])
+@app.route('/api/comments', methods=['POST', 'OPTIONS'])
 def create_comment():
     """Создание нового комментария"""
+    if request.method == 'OPTIONS':
+        return '', 200
+        
     try:
         comment_data = request.json
+        if not comment_data:
+            return jsonify({"success": False, "error": "No data provided"}), 400
+            
         comment_data["id"] = int(datetime.now().timestamp() * 1000)
         comment_data["timestamp"] = comment_data["id"]
         comment_data["date"] = datetime.now().isoformat()
         
         # Загружаем текущие данные
-        data = sync_data()
+        data = get_local_data()
         data["comments"].append(comment_data)
         
         # Сохраняем обновленные данные
@@ -191,37 +157,69 @@ def create_comment():
         
         return jsonify({"success": True, "comment_id": comment_data["id"]})
     except Exception as e:
+        print(f"Ошибка создания комментария: {e}")
         return jsonify({"success": False, "error": str(e)}), 500
 
 @app.route('/api/orders', methods=['GET'])
 def get_orders():
     """Получение списка заказов"""
     try:
-        data = sync_data()
-        return jsonify(data["orders"])
+        data = get_local_data()
+        return jsonify(data.get("orders", []))
     except Exception as e:
+        print(f"Ошибка получения заказов: {e}")
         return jsonify({"error": str(e)}), 500
 
 @app.route('/api/comments', methods=['GET'])
 def get_comments():
     """Получение списка комментариев"""
     try:
-        data = sync_data()
-        return jsonify(data["comments"])
+        data = get_local_data()
+        return jsonify(data.get("comments", []))
     except Exception as e:
+        print(f"Ошибка получения комментариев: {e}")
         return jsonify({"error": str(e)}), 500
 
-@app.route('/api/sync', methods=['POST'])
+@app.route('/api/sync', methods=['POST', 'OPTIONS'])
 def sync():
     """Принудительная синхронизация данных"""
+    if request.method == 'OPTIONS':
+        return '', 200
+        
     try:
-        data = sync_data()
+        local_data = get_local_data()
+        yandex_data = yandex_disk.load_data()
+        
+        # Объединяем данные
+        merged_data = {
+            "orders": local_data.get("orders", []) + yandex_data.get("orders", []),
+            "comments": local_data.get("comments", []) + yandex_data.get("comments", [])
+        }
+        
+        # Убираем дубликаты по ID
+        def remove_duplicates(items):
+            seen = set()
+            unique = []
+            for item in items:
+                if item["id"] not in seen:
+                    seen.add(item["id"])
+                    unique.append(item)
+            return unique
+            
+        merged_data["orders"] = remove_duplicates(merged_data["orders"])
+        merged_data["comments"] = remove_duplicates(merged_data["comments"])
+        
+        # Сохраняем объединенные данные
+        save_local_data(merged_data)
+        yandex_disk.save_data(merged_data)
+        
         return jsonify({
             "success": True, 
-            "orders_count": len(data["orders"]),
-            "comments_count": len(data["comments"])
+            "orders_count": len(merged_data["orders"]),
+            "comments_count": len(merged_data["comments"])
         })
     except Exception as e:
+        print(f"Ошибка синхронизации: {e}")
         return jsonify({"success": False, "error": str(e)}), 500
 
 @app.route('/static/<path:filename>')
@@ -229,11 +227,16 @@ def static_files(filename):
     return send_from_directory('static', filename)
 
 if __name__ == '__main__':
-    # Создаем папку для статических файлов если её нет
+    # Создаем папки если их нет
     os.makedirs('static', exist_ok=True)
+    os.makedirs('templates', exist_ok=True)
     
-    # Первоначальная синхронизация при запуске
-    print("Синхронизация данных с Яндекс.Диском...")
-    sync_data()
+    # Проверяем подключение к Яндекс.Диску
+    print("Проверка подключения к Яндекс.Диску...")
+    try:
+        test_data = yandex_disk.load_data()
+        print("✅ Подключение к Яндекс.Диску успешно")
+    except Exception as e:
+        print(f"❌ Ошибка подключения к Яндекс.Диску: {e}")
     
     app.run(debug=True, host='0.0.0.0', port=5000)
