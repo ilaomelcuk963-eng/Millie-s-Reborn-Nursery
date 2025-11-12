@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Millie's Reborn Nursery</title>
-      <link rel="shortcut icon" href="./free-icon-doll-8013731.png" type="image/x-icon">
+    <link rel="shortcut icon" href="https://placehold.co/32x32/FFB6C1/5A2D4E?text=M" type="image/x-icon">
     <style>
         /* Общие стили */
         * {
@@ -37,7 +37,7 @@
             100% { transform: scale(1); }
         }
 
-        /* Фон с размытым сердечком */
+        /* Фон */
         .background {
             position: fixed;
             top: 0;
@@ -131,14 +131,15 @@
             padding: 20px;
         }
 
+        /* СЕКЦИИ */
         section {
-            display: none;
+            display: none; /* Все секции скрыты по умолчанию */
             padding: 40px 20px;
             animation: fadeIn 0.8s ease;
         }
 
         section.active {
-            display: block;
+            display: block; /* Активная секция видна */
         }
 
         h1, h2, h3 {
@@ -182,6 +183,7 @@
             height: 200px;
             object-fit: cover;
             border-radius: 5px;
+            background-color: #fce4ec;
         }
 
         /* Формы */
@@ -214,12 +216,6 @@
             transition: all 0.3s ease;
         }
 
-        input:focus, textarea:focus, select:focus {
-            outline: none;
-            border-color: #cc0066;
-            box-shadow: 0 0 5px rgba(204, 0, 102, 0.3);
-        }
-
         button {
             background-color: #ff66a3;
             color: white;
@@ -243,17 +239,6 @@
             margin-bottom: 30px;
         }
 
-        .cart-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px;
-            background-color: white;
-            border-radius: 5px;
-            margin-bottom: 10px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-
         .cart-total {
             text-align: right;
             font-size: 20px;
@@ -262,26 +247,60 @@
             color: #cc0066;
         }
 
-        /* Комментарии */
-        .comments-section {
-            margin-top: 50px;
-            padding-top: 30px;
-            border-top: 1px solid #ff99cc;
-        }
-
-        .comment {
+        /* Админ-панель */
+        .admin-panel {
             background-color: white;
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 15px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-top: 20px;
         }
 
-        .comment-author {
-            font-weight: bold;
-            color: #cc0066;
-            margin-bottom: 5px;
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
         }
+
+        .admin-table th, .admin-table td {
+            border: 1px solid #ff99cc;
+            padding: 10px;
+            text-align: left;
+        }
+
+        .admin-table th {
+            background-color: #ff99cc;
+            color: white;
+        }
+
+        /* Комментарии */
+        #comments-section {
+            background: linear-gradient(135deg, #fff5f9 0%, #ffe6f2 100%);
+            border-radius: 15px;
+        }
+
+        .comment-card {
+            margin-bottom: 20px;
+        }
+
+        /* Уведомления */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 10px;
+            color: white;
+            font-weight: bold;
+            z-index: 10000;
+            animation: slideIn 0.3s ease;
+            max-width: 300px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .notification.success { background: #4CAF50; }
+        .notification.error { background: #f44336; }
+        .notification.warning { background: #ff9800; }
 
         /* Футер */
         footer {
@@ -291,57 +310,24 @@
             text-align: center;
             margin-top: 50px;
         }
-
-        .contact-info {
-            display: flex;
-            justify-content: space-around;
-            flex-wrap: wrap;
-            margin-bottom: 20px;
-        }
-
-        .contact-item {
-            margin: 10px 20px;
-        }
-
-        .social-links {
-            margin-top: 20px;
-        }
-
+        
         .social-links a {
             color: white;
-            font-size: 24px;
             margin: 0 10px;
-            transition: all 0.3s ease;
-        }
-
-        .social-links a:hover {
-            color: #cc0066;
-            transform: scale(1.2);
-        }
-
-        /* Адаптивность */
-        @media (max-width: 768px) {
-            .gallery {
-                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            }
-            
-            .contact-info {
-                flex-direction: column;
-                align-items: center;
-            }
+            font-size: 18px;
         }
     </style>
 </head>
 <body>
     <div class="background"></div>
-    
+
     <!-- Навигация -->
     <div class="nav-toggle" id="navToggle">
         <span></span>
         <span></span>
         <span></span>
     </div>
-    
+
     <nav class="navigation" id="navigation">
         <ul>
             <li><a href="#" data-section="home">Главная</a></li>
@@ -349,59 +335,47 @@
             <li><a href="#" data-section="gallery">Галерея</a></li>
             <li><a href="#" data-section="order">Заказ</a></li>
             <li><a href="#" data-section="cart">Корзина</a></li>
+            <li><a href="#" data-section="admin">Админ-панель</a></li>
+            <!-- ИСПРАВЛЕНО: Теперь это обычная ссылка, которая переключает секцию -->
+            <li><a href="#" data-section="comments-section">Отзывы</a></li>
         </ul>
     </nav>
-    
+
     <!-- Основной контент -->
     <div class="content">
         <!-- Главная -->
         <section id="home" class="active">
             <h1>Millie's Reborn Nursery</h1>
-            <p>Создаем уникальные куклы ручной работы, которые станут любимыми игрушками ваших детей или ценными коллекционными предметами.</p>
-            <p>Каждая кукла создается с любовью и вниманием к деталям, чтобы подарить радость и волшебство.</p>
+            <p>Создаем уникальные куклы ручной работы, которые станут любимыми игрушками ваших детей.</p>
             <div style="text-align: center; margin-top: 30px;">
                 <button id="exploreBtn">Исследовать галерею</button>
             </div>
         </section>
-        
+
         <!-- О нас -->
         <section id="about">
             <h2>О нас</h2>
-            <p>Мы - команда мастеров, создающих уникальные куклы на заказ уже более 5 лет. Наша миссия - дарить радость детям и взрослым через искусство создания кукол.</p>
-            <p>Каждая наша кукла - это произведение искусства, созданное с любовью и вниманием к деталям. Мы используем только качественные материалы и безопасные краски.</p>
-            <p>Наши куклы могут быть выполнены в различных стилях - от классических до современных, от реалистичных до фантазийных.</p>
+            <p>Мы - команда мастеров, создающих уникальные куклы на заказ.</p>
         </section>
-        
+
         <!-- Галерея -->
         <section id="gallery">
-            <h2>Галерея куклочек</h2>
-            <p>Здесь вы можете увидеть примеры наших работ. Каждая кукла уникальна и создается индивидуально под заказ.</p>
+            <h2>Галерея кукол</h2>
+            <!-- /// ИЗМЕНЕННЫЙ БЛОК /// -->
             <div class="gallery">
-                <div class="photo-frame">
-                    <img src="./изображение_viber_2025-11-01_12-52-31-434.jpg" alt="Кукла 1">
-                </div>
-                <div class="photo-frame">
-                    <img src="./изображение_viber_2025-11-01_12-52-32-199.jpg" alt="Кукла 2">
-                </div>
-                <div class="photo-frame">
-                    <img src="./изображение_viber_2025-11-01_12-52-32-253.jpg" alt="Кукла 3">
-                </div>
-                <div class="photo-frame">
-                    <img src="./изображение_viber_2025-11-01_12-52-32-348.jpg" alt="Кукла 4">
-                </div>
-                <div class="photo-frame">
-                    <img src="./изображение_viber_2025-11-01_12-52-32-408.jpg" alt="Кукла 5">
-                </div>
-                <div class="photo-frame">
-                    <img src="./изображение_viber_2025-11-01_12-52-32-464.jpg" alt="Кукла 6">
-                </div>
+                <div class="photo-frame"><img src="изображение_viber_2025-11-01_12-52-31-434.jpg" alt="Фото 1"></div>
+                <div class="photo-frame"><img src="изображение_viber_2025-11-01_12-52-32-199.jpg" alt="Фото 2"></div>
+                <div class="photo-frame"><img src="изображение_viber_2025-11-01_12-52-32-253.jpg" alt="Фото 3"></div>
+                <div class="photo-frame"><img src="изображение_viber_2025-11-01_12-52-32-348.jpg" alt="Фото 4"></div>
+                <div class="photo-frame"><img src="изображение_viber_2025-11-01_12-52-32-408.jpg" alt="Фото 5"></div>
+                <div class="photo-frame"><img src="изображение_viber_2025-11-01_12-52-32-464.jpg" alt="Фото 6"></div>
             </div>
+            <!-- /// КОНЕЦ ИЗМЕНЕННОГО БЛОКА /// -->
         </section>
-        
+
         <!-- Заказ -->
         <section id="order">
             <h2>Оформить заказ</h2>
-            <p>Заполните форму ниже, чтобы оформить заказ на создание уникальной куклы. Мы свяжемся с вами для уточнения деталей.</p>
             <form id="orderForm">
                 <div class="form-group">
                     <label for="name">Ваше имя:</label>
@@ -418,10 +392,7 @@
                 <div class="form-group">
                     <label for="dollType">Тип куклы:</label>
                     <select id="dollType" name="dollType" required>
-                        <option value="">Выберите тип</option>
                         <option value="classic">Классическая</option>
-                        <option value="fantasy">Фантазийная</option>
-                        <option value="character">Персонаж</option>
                         <option value="custom">Индивидуальный дизайн</option>
                     </select>
                 </div>
@@ -432,124 +403,353 @@
                 <button type="submit">Отправить заказ</button>
             </form>
         </section>
-        
+
         <!-- Корзина -->
         <section id="cart">
             <h2>Корзина заказов</h2>
-            <div class="cart-items">
-                <!-- Здесь будут элементы корзины -->
-            </div>
-            <div class="cart-total">
-                Итого: <span id="totalPrice">0</span> руб.
-            </div>
-            <button id="checkoutBtn" style="margin-top: 20px;">Оформить заказ</button>
+            <div class="cart-items"><p style="text-align:center">Корзина пока пуста</p></div>
         </section>
-        
-        <!-- Комментарии -->
-        <div class="comments-section">
-            <h3>Отзывы наших клиентов</h3>
-            <div id="commentsList">
-                <!-- Здесь будут комментарии -->
+
+        <!-- Отзывы -->
+        <!-- ИСПРАВЛЕНО: Теперь это стандартная секция внутри .content -->
+        <section id="comments-section">
+            <h2 style="font-size: 2.5em;">💬 Отзывы клиентов</h2>
+            
+            <!-- Форма -->
+            <div style="max-width: 800px; margin: 0 auto 50px; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+                <h3 style="color: #cc0066; text-align: center; margin-bottom: 25px;">Оставьте ваш отзыв</h3>
+                <form id="commentsForm">
+                    <div class="form-group">
+                        <label for="commentName">Ваше имя:</label>
+                        <input type="text" id="commentName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="commentText">Ваш отзыв:</label>
+                        <textarea id="commentText" rows="4" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="commentRating">Оценка:</label>
+                        <select id="commentRating" required>
+                            <option value="5">★★★★★ Отлично</option>
+                            <option value="4">★★★★☆ Хорошо</option>
+                            <option value="3">★★★☆☆ Нормально</option>
+                        </select>
+                    </div>
+                    <button type="submit">Опубликовать отзыв</button>
+                </form>
             </div>
-            <form id="commentForm" style="margin-top: 20px;">
+
+            <!-- Список -->
+            <div id="commentsDisplay" style="max-width: 1000px; margin: 0 auto;">
+                <div id="commentsList" style="display: grid; gap: 20px;"></div>
+            </div>
+        </section>
+
+        <!-- Админ-панель -->
+        <section id="admin">
+            <h2>Админ-панель</h2>
+            <div id="adminLogin" class="admin-login">
                 <div class="form-group">
-                    <label for="commentName">Ваше имя:</label>
-                    <input type="text" id="commentName" name="commentName" required>
+                    <label>Пароль:</label>
+                    <input type="password" id="adminPassword" required>
                 </div>
-                <div class="form-group">
-                    <label for="commentText">Ваш отзыв:</label>
-                    <textarea id="commentText" name="commentText" rows="3" required></textarea>
+                <button id="loginBtn">Войти</button>
+            </div>
+            
+            <div id="adminPanel" class="admin-panel" style="display: none;">
+                <!-- Блок Яндекс.Диска ВОССТАНОВЛЕН -->
+                <div id="megaStatus" style="margin: 15px 0; padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; background: #eee;">
+                    Статус Я.Диска
                 </div>
-                <button type="submit">Добавить отзыв</button>
-            </form>
-        </div>
+                <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                    <!-- Кнопки 'Сохранить' и 'Загрузить' ВОССТАНОВЛЕНЫ -->
+                    <button id="syncBtn" style="background: #4CAF50;">💾 Сохранить в data.json</button>
+                    <button id="loadBtn" style="background: #2196F3;">📂 Загрузить из data.json</button>
+                    <button id="logoutBtn" style="background: #f44336;">Выйти</button>
+                </div>
+
+                <h3>Заказы</h3>
+                <div id="ordersList">
+                    <table class="admin-table"><tbody id="ordersTableBody"></tbody></table>
+                </div>
+                
+                <h3 style="margin-top: 30px;">Комментарии</h3>
+                <div id="commentsAdminList">
+                    <table class="admin-table"><tbody id="commentsTableBody"></tbody></table>
+                </div>
+            </div>
+        </section>
     </div>
-    
+
     <!-- Футер -->
     <footer>
-        <div class="contact-info">
-            <div class="contact-item">
-                <h3>Телефон я помню</h3>
-                <p>+380977057272</p>
-            </div>
-            <div class="contact-item">
-                <h3>Email</h3>
-                <p> как хочешь</p>
-            </div>
-            <div class="contact-item">
-                <h3>Адрес</h3>
-                <p>украина</p>
-            </div>
-        </div>
+        <p>Телефон: +380977057272 | Украина</p>
         <div class="social-links">
-            <a href="#">VK потом вставишь свою</a>
-            <a href="#">Instagram</a>
-            <a href="#">в дс решим</a>
+            <a href="#">Instagram</a> <a href="#">TikTok</a> <a href="#">Telegram</a>
         </div>
     </footer>
 
     <script>
-        // Навигация
-        document.getElementById('navToggle').addEventListener('click', function() {
+        // Константы Яндекс.Диска ВОССТАНОВЛЕНЫ с вашим НОВЫМ токеном
+        const YANDEX_DISK_TOKEN = "y0__xDK_b6HCBjblgMg-d2NkBVX4rnW-kp2fSFONufPnpCLTE6fDQ";
+        const YANDEX_API_URL = "https://cloud-api.yandex.net/v1/disk/resources";
+        const DATA_FILENAME = "data.json"; // Единый файл для всего
+        
+        let isAdminLoggedIn = false; // Отслеживаем состояние входа
+
+        // === НАВИГАЦИЯ (ИСПРАВЛЕНО) ===
+        document.getElementById('navToggle').addEventListener('click', () => {
             document.getElementById('navigation').classList.toggle('active');
         });
 
-        // Переключение разделов
+        // Универсальный переключатель для ВСЕХ ссылок, включая Отзывы
         document.querySelectorAll('.navigation a').forEach(link => {
             link.addEventListener('click', function(e) {
                 e.preventDefault();
                 const sectionId = this.getAttribute('data-section');
+
+                // Скрываем все секции
+                document.querySelectorAll('section').forEach(sec => sec.classList.remove('active'));
                 
-                // Скрыть все разделы
-                document.querySelectorAll('section').forEach(section => {
-                    section.classList.remove('active');
-                });
-                
-                // Показать выбранный раздел
-                document.getElementById(sectionId).classList.add('active');
-                
-                // Закрыть навигацию
+                // Показываем нужную
+                const target = document.getElementById(sectionId);
+                if (target) target.classList.add('active');
+
+                // Закрываем меню
                 document.getElementById('navigation').classList.remove('active');
+
+                if (sectionId === 'admin') checkAdminAuth(); // Эта строка теперь будет работать
             });
         });
 
-        // Кнопка "Исследовать галерею"
         document.getElementById('exploreBtn').addEventListener('click', function() {
-            document.querySelectorAll('section').forEach(section => {
-                section.classList.remove('active');
-            });
+            document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
             document.getElementById('gallery').classList.add('active');
         });
 
-        // Форма заказа
+        // === ДАННЫЕ (Local Storage + Yandex) ===
+        
+        // Получить все данные
+        function getLocalData() {
+            return {
+                orders: JSON.parse(localStorage.getItem('dollOrders') || '[]'),
+                comments: JSON.parse(localStorage.getItem('dollComments') || '[]')
+            };
+        }
+
+        // Сохранить локально
+        function saveLocalData(orders, comments) {
+            if (orders) localStorage.setItem('dollOrders', JSON.stringify(orders));
+            if (comments) localStorage.setItem('dollComments', JSON.stringify(comments));
+        }
+
+        // === ФУНКЦИИ YANDEX DISK (syncToYandex, loadFromYandex) ВОССТАНОВЛЕНЫ ===
+        
+        async function syncToYandex() {
+            showNotification('⏳ Сохранение в облако...', 'warning');
+            const data = getLocalData();
+            
+            try {
+                // 1. Получаем URL для загрузки
+                const uploadResp = await fetch(`${YANDEX_API_URL}/upload?path=/doll_shop/${DATA_FILENAME}&overwrite=true`, {
+                    headers: { 'Authorization': `OAuth ${YANDEX_DISK_TOKEN}` }
+                });
+                
+                if (uploadResp.ok) {
+                    const { href } = await uploadResp.json();
+                    // 2. Отправляем файл
+                    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                    const putResp = await fetch(href, { method: 'PUT', body: blob });
+                    
+                    if (putResp.ok) {
+                        showNotification('✅ Данные сохранены в data.json!', 'success');
+                        document.getElementById('megaStatus').textContent = 'Статус: Сохранено в облаке';
+                    }
+                } else {
+                     document.getElementById('megaStatus').textContent = 'Статус: Ошибка (URL загрузки)';
+                }
+            } catch (e) {
+                console.error(e);
+                showNotification('❌ Ошибка сохранения (CORS или токен)', 'error');
+                document.getElementById('megaStatus').textContent = 'Статус: Ошибка сети/CORS';
+            }
+        }
+
+        async function loadFromYandex() {
+            showNotification('⏳ Загрузка из облака...', 'warning');
+            document.getElementById('megaStatus').textContent = 'Статус: Загрузка...';
+            try {
+                // 1. Получаем URL для скачивания
+                const downloadResp = await fetch(`${YANDEX_API_URL}/download?path=/doll_shop/${DATA_FILENAME}`, {
+                    headers: { 'Authorization': `OAuth ${YANDEX_DISK_TOKEN}` }
+                });
+                
+                if (downloadResp.ok) {
+                    const { href } = await downloadResp.json();
+                    // 2. Получаем сам файл
+                    const fileResp = await fetch(href);
+                    const data = await fileResp.json();
+                    
+                    if (data) {
+                        saveLocalData(data.orders, data.comments);
+                        renderAll();
+                        showNotification('✅ Данные загружены!', 'success');
+                        document.getElementById('megaStatus').textContent = 'Статус: Загружено из облака';
+                        return true;
+                    }
+                } else {
+                    document.getElementById('megaStatus').textContent = 'Статус: Ошибка (URL скачивания)';
+                }
+            } catch (e) {
+                console.error(e);
+                document.getElementById('megaStatus').textContent = 'Статус: Ошибка сети или файл не найден';
+            }
+            return false;
+        }
+
+        // === АДМИНКА АУТЕНТИФИКАЦИЯ (ИСПРАВЛЕНО) ===
+        // Функция добавлена, чтобы исправить ошибку 'checkAdminAuth is not defined'
+        function checkAdminAuth() {
+            if (isAdminLoggedIn) {
+                document.getElementById('adminLogin').style.display = 'none';
+                document.getElementById('adminPanel').style.display = 'block';
+                renderAll(); 
+            } else {
+                document.getElementById('adminLogin').style.display = 'block';
+                document.getElementById('adminPanel').style.display = 'none';
+            }
+        }
+
+
+        // === ОБРАБОТЧИКИ ФОРМ ===
+
+        // Заказ
         document.getElementById('orderForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            alert('Ваш заказ отправлен! Мы свяжемся с вами в ближайшее время.');
+            const { orders } = getLocalData();
+            
+            const newOrder = {
+                id: Date.now(),
+                name: document.getElementById('name').value,
+                email: document.getElementById('email').value,
+                phone: document.getElementById('phone').value,
+                dollType: document.getElementById('dollType').value,
+                description: document.getElementById('description').value,
+                date: new Date().toLocaleDateString()
+            };
+            
+            orders.push(newOrder);
+            saveLocalData(orders, null);
+            syncToYandex(); // ВОССТАНОВЛЕНО
+            
+            showNotification('✅ Заказ отправлен!', 'success');
             this.reset();
         });
 
-        // Форма комментариев
-        document.getElementById('commentForm').addEventListener('submit', function(e) {
+        // Комментарий
+        document.getElementById('commentsForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            const name = document.getElementById('commentName').value;
-            const text = document.getElementById('commentText').value;
+            const { comments } = getLocalData();
             
-            if (name && text) {
-                const commentDiv = document.createElement('div');
-                commentDiv.className = 'comment';
-                commentDiv.innerHTML = `
-                    <div class="comment-author">${name}</div>
-                    <div class="comment-text">${text}</div>
-                `;
-                
-                document.getElementById('commentsList').prepend(commentDiv);
-                this.reset();
-            }
+            const newComment = {
+                id: Date.now(),
+                name: document.getElementById('commentName').value,
+                text: document.getElementById('commentText').value,
+                rating: parseInt(document.getElementById('commentRating').value),
+                date: new Date().toISOString(),
+                approved: true
+            };
+            
+            comments.unshift(newComment);
+            saveLocalData(null, comments);
+            syncToYandex(); // ВОССТАНОВЛЕНО
+            
+            renderAll();
+            showNotification('✅ Отзыв добавлен!', 'success');
+            this.reset();
         });
 
-        // Корзина (упрощенная версия)
-        document.getElementById('checkoutBtn').addEventListener('click', function() {
-            alert('Заказ оформлен! Мы свяжемся с вами для подтверждения.');
+        // === РЕНДЕРИНГ ===
+        function renderAll() {
+            const { orders, comments } = getLocalData();
+            
+            // Рендер комментариев (клиент)
+            const list = document.getElementById('commentsList');
+            if (comments.length === 0) {
+                list.innerHTML = '<div style="text-align:center; padding:20px;">Пока нет отзывов</div>';
+            } else {
+                list.innerHTML = comments.map(c => `
+                    <div style="background:white; padding:20px; border-radius:10px; box-shadow:0 2px 5px rgba(0,0,0,0.1);">
+                        <div style="display:flex; justify-content:space-between; color:#cc0066; font-weight:bold;">
+                            <span>${c.name}</span>
+                            <span style="color:#ffcc00;">${'★'.repeat(c.rating)}</span>
+                        </div>
+                        <p style="text-align:left; margin-top:10px;">${c.text}</p>
+                        <small style="color:#999;">${new Date(c.date).toLocaleDateString()}</small>
+                    </div>
+                `).join('');
+            }
+
+            // Рендер админки
+            document.getElementById('ordersTableBody').innerHTML = orders.map(o => `
+                <tr><td>${o.id}</td><td>${o.name}</td><td>${o.dollType}</td><td>${o.date}</td></tr>
+            `).join('');
+
+            document.getElementById('commentsTableBody').innerHTML = comments.map(c => `
+                <tr>
+                    <td>${c.name}</td>
+                    <td>${c.text.substring(0, 30)}...</td>
+                    <td>${c.rating}</td>
+                    <td><button onclick="deleteItem('comment', ${c.id})" style="background:#f44336; color:white; border:none; padding:5px;">Удалить</button></td>
+                </tr>
+            `).join('');
+        }
+
+        // === АДМИНКА ===
+        window.deleteItem = function(type, id) {
+            if (!confirm('Удалить?')) return;
+            let { orders, comments } = getLocalData();
+            
+            if (type === 'comment') {
+                comments = comments.filter(c => c.id !== id);
+            }
+            
+            saveLocalData(orders, comments);
+            syncToYandex(); // ВОССТАНОВЛЕНО
+            renderAll();
+        };
+
+        document.getElementById('loginBtn').addEventListener('click', () => {
+            if (document.getElementById('adminPassword').value === '1488') {
+                isAdminLoggedIn = true;
+                checkAdminAuth(); // Используем новую функцию
+            } else {
+                showNotification('Неверный пароль', 'error');
+            }
+        });
+        
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+             isAdminLoggedIn = false;
+             checkAdminAuth(); // Используем новую функцию
+        });
+
+        // Обработчики кнопок 'syncBtn' и 'loadBtn' ВОССТАНОВЛЕНЫ
+        document.getElementById('syncBtn').addEventListener('click', syncToYandex);
+        document.getElementById('loadBtn').addEventListener('click', loadFromYandex);
+        
+        // Уведомления
+        function showNotification(msg, type) {
+            const n = document.createElement('div');
+            n.className = `notification ${type}`;
+            n.textContent = msg;
+            document.body.appendChild(n);
+            setTimeout(() => n.remove(), 3000);
+        }
+
+        // Старт
+        document.addEventListener('DOMContentLoaded', () => {
+            renderAll();
+            loadFromYandex(); // ВОССТАНОВЛЕНО
         });
     </script>
 </body>
