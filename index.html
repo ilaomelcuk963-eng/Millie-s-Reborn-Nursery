@@ -352,117 +352,141 @@
             <a href="https://t.me/reborn_nursery">Телеграм</a>
         </div>
     </footer>
-
+    
     <!-- JavaScript -->
-    <script>
-        // Конфигурация API
-        const API_BASE_URL = window.location.origin;
+<script>
+    // Конфигурация API
+    const API_BASE_URL = window.location.origin;
 
-        // Навигация
-        document.getElementById('navToggle').addEventListener('click', function() {
-            document.getElementById('navigation').classList.toggle('active');
-        });
+    // Навигация
+    document.getElementById('navToggle').addEventListener('click', function() {
+        document.getElementById('navigation').classList.toggle('active');
+    });
 
-        document.querySelectorAll('.navigation a').forEach(link => {
-            link.addEventListener('click', function(e) {
-                e.preventDefault();
-                const sectionId = this.getAttribute('data-section');
-                
-                // Скрыть все секции
-                document.querySelectorAll('section').forEach(section => {
-                    section.classList.remove('active');
-                });
-                
-                // Показать целевую секцию
-                const targetSection = document.getElementById(sectionId);
-                if (targetSection) {
-                    targetSection.classList.add('active');
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                }
-                
-                // Закрыть навигационное меню
-                document.getElementById('navigation').classList.remove('active');
-                
-                // Специальная обработка для админ-панели
-                if (sectionId === 'admin') {
-                    checkAdminAuth();
-                }
-                
-                // Загрузка комментариев при переходе в секцию отзывов
-                if (sectionId === 'comments-section') {
-                    loadAndDisplayComments();
-                }
-            });
-        });
-
-        // "Исследовать галерею"
-        document.getElementById('exploreBtn').addEventListener('click', function() {
-            document.querySelectorAll('section').forEach(section => section.classList.remove('active'));
-            document.getElementById('gallery').classList.add('active');
-        });
-
-        // Функции для работы с API
-        async function apiRequest(endpoint, options = {}) {
-            try {
-                const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-                    headers: {
-                        'Content-Type': 'application/json',
-                        ...options.headers
-                    },
-                    ...options
-                });
-                return await response.json();
-            } catch (error) {
-                console.error('Ошибка API запроса:', error);
-                return { success: false, error: error.message };
-            }
-        }
-
-        // Сохранение заказа
-        async function saveOrder(orderData) {
-            return await apiRequest('/api/orders', {
-                method: 'POST',
-                body: JSON.stringify(orderData)
-            });
-        }
-
-        // Сохранение комментария
-        async function saveComment(commentData) {
-            return await apiRequest('/api/comments', {
-                method: 'POST',
-                body: JSON.stringify(commentData)
-            });
-        }
-
-        // Загрузка комментариев
-        async function loadComments() {
-            const response = await apiRequest('/api/comments');
-            return Array.isArray(response) ? response : [];
-        }
-
-        // Загрузка заказов
-        async function loadOrders() {
-            const response = await apiRequest('/api/orders');
-            return Array.isArray(response) ? response : [];
-        }
-
-        // Синхронизация
-        async function syncData() {
-            return await apiRequest('/api/sync', { method: 'POST' });
-        }
-
-        // Форма заказа
-        document.getElementById('orderForm').addEventListener('submit', async function(e) {
+    document.querySelectorAll('.navigation a').forEach(link => {
+        link.addEventListener('click', function(e) {
             e.preventDefault();
-            const formData = new FormData(this);
-            const orderData = {
-                name: formData.get('name'),
-                email: formData.get('email'),
-                phone: formData.get('phone'),
-                dollType: formData.get('dollType'),
-                description: formData.get('description')
-            };
+            const sectionId = this.getAttribute('data-section');
+            
+            // Скрыть все секции
+            document.querySelectorAll('section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Показать целевую секцию
+            const targetSection = document.getElementById(sectionId);
+            if (targetSection) {
+                targetSection.classList.add('active');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+            
+            // Закрыть навигационное меню
+            document.getElementById('navigation').classList.remove('active');
+            
+            // Специальная обработка для админ-панели
+            if (sectionId === 'admin') {
+                checkAdminAuth();
+            }
+            
+            // Загрузка комментариев при переходе в секцию отзывов
+            if (sectionId === 'comments-section') {
+                loadAndDisplayComments();
+            }
+        });
+    });
 
+    // "Исследовать галерею"
+    document.getElementById('exploreBtn').addEventListener('click', function() {
+        document.querySelectorAll('section').forEach(section => section.classList.remove('active'));
+        document.getElementById('gallery').classList.add('active');
+    });
+
+    // Функции для работы с API
+    async function apiRequest(endpoint, options = {}) {
+        try {
+            console.log(`Отправка запроса на: ${API_BASE_URL}${endpoint}`);
+            
+            const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...options.headers
+                },
+                ...options
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            console.log('Ответ от сервера:', data);
+            return data;
+            
+        } catch (error) {
+            console.error('Ошибка API запроса:', error);
+            showNotification(`❌ Ошибка соединения: ${error.message}`, 'error');
+            return { success: false, error: error.message };
+        }
+    }
+
+    // Сохранение заказа
+    async function saveOrder(orderData) {
+        return await apiRequest('/api/orders', {
+            method: 'POST',
+            body: JSON.stringify(orderData)
+        });
+    }
+
+    // Сохранение комментария
+    async function saveComment(commentData) {
+        return await apiRequest('/api/comments', {
+            method: 'POST',
+            body: JSON.stringify(commentData)
+        });
+    }
+
+    // Загрузка комментариев
+    async function loadComments() {
+        const response = await apiRequest('/api/comments');
+        return Array.isArray(response) ? response : [];
+    }
+
+    // Загрузка заказов
+    async function loadOrders() {
+        const response = await apiRequest('/api/orders');
+        return Array.isArray(response) ? response : [];
+    }
+
+    // Синхронизация
+    async function syncData() {
+        return await apiRequest('/api/sync', { method: 'POST' });
+    }
+
+    // Форма заказа
+    document.getElementById('orderForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const orderData = {
+            name: document.getElementById('orderName').value,
+            email: document.getElementById('email').value,
+            phone: document.getElementById('phone').value,
+            dollType: document.getElementById('dollType').value,
+            description: document.getElementById('description').value
+        };
+
+        // Валидация
+        if (!orderData.name || !orderData.email || !orderData.phone || !orderData.dollType || !orderData.description) {
+            showNotification('⚠️ Пожалуйста, заполните все поля', 'warning');
+            return;
+        }
+
+        const submitBtn = this.querySelector('button[type="submit"]');
+        const originalText = submitBtn.textContent;
+        
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Отправка...';
+
+        try {
             const result = await saveOrder(orderData);
             if (result.success) {
                 showNotification('✅ Ваш заказ отправлен! Мы свяжемся с вами в ближайшее время.', 'success');
@@ -471,184 +495,216 @@
                     await loadAdminData();
                 }
             } else {
-                showNotification('❌ Ошибка отправки заказа', 'error');
+                showNotification(`❌ Ошибка отправки заказа: ${result.error}`, 'error');
             }
-        });
+        } catch (error) {
+            showNotification('❌ Ошибка отправки заказа', 'error');
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalText;
+        }
+    });
 
-        // Форма комментариев
-        document.getElementById('commentsForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const commentData = {
-                name: document.getElementById('commentName').value.trim(),
-                text: document.getElementById('commentText').value.trim(),
-                rating: document.querySelector('input[name="rating"]:checked').value
-            };
+    // Форма комментариев
+    document.getElementById('commentsForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const name = document.getElementById('commentName').value.trim();
+        const text = document.getElementById('commentText').value.trim();
+        const ratingInput = document.querySelector('input[name="rating"]:checked');
 
-            if (!commentData.name || !commentData.text) {
-                showNotification('⚠️ Пожалуйста, заполните все поля', 'warning');
-                return;
-            }
-
-            const submitBtn = document.getElementById('submitBtn');
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Отправка...';
-
-            try {
-                const result = await saveComment(commentData);
-                if (result.success) {
-                    showNotification('✅ Отзыв успешно отправлен!', 'success');
-                    this.reset();
-                    await loadAndDisplayComments();
-                    if (document.getElementById('adminPanel').style.display !== 'none') {
-                        await loadAdminData();
-                    }
-                } else {
-                    showNotification('❌ Ошибка отправки отзыва', 'error');
-                }
-            } catch (error) {
-                showNotification('❌ Ошибка отправки отзыва', 'error');
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Отправить отзыв';
-            }
-        });
-
-        // Отображение комментариев
-        function displayComments(comments) {
-            const commentsList = document.getElementById('commentsList');
-            const loadingMessage = document.getElementById('loading-message');
-
-            if (!comments || comments.length === 0) {
-                commentsList.innerHTML = '<div style="text-align:center; padding:40px; background:white; border-radius:15px; box-shadow:0 5px 15px rgba(0,0,0,0.1);"><div style="font-size:4em; margin-bottom:20px;">💬</div><h3 style="color:#cc0066; margin-bottom:15px;">Пока нет отзывов</h3><p style="color:#5a2d4e;">Будьте первым, кто оставит отзыв о наших куклах!</p></div>';
-                loadingMessage.style.display = 'none';
-                return;
-            }
-
-            let html = '';
-            comments.forEach(comment => {
-                const date = new Date(comment.date);
-                const dateStr = date.toLocaleDateString('ru-RU', { 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                });
-                
-                const rating = comment.rating || 0;
-                const stars = '★'.repeat(rating) + '☆'.repeat(5 - rating);
-                
-                html += `
-                    <div class="comment-card" style="background:#fff; padding:20px; border-radius:10px; box-shadow:0 4px 8px rgba(0,0,0,0.1); border-left:5px solid #ff69b4;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; border-bottom:1px dashed #ffc0cb; padding-bottom:5px;">
-                            <span style="font-size:1.1rem; font-weight:bold; color:#8b008b;">${escapeHtml(comment.name)}</span>
-                            <span style="color:gold; font-size:1.1rem;">${stars}</span>
-                        </div>
-                        <div style="margin-top:10px; line-height:1.6; color:#5a2d4e;">${escapeHtml(comment.text)}</div>
-                        <div style="margin-top:10px; color:#aaa; font-size:0.9rem;">${dateStr}</div>
-                    </div>
-                `;
-            });
-
-            commentsList.innerHTML = html;
-            loadingMessage.style.display = 'none';
+        // Валидация
+        if (!name) {
+            showNotification('⚠️ Пожалуйста, введите ваше имя', 'warning');
+            return;
+        }
+        
+        if (!text) {
+            showNotification('⚠️ Пожалуйста, введите текст отзыва', 'warning');
+            return;
+        }
+        
+        if (!ratingInput) {
+            showNotification('⚠️ Пожалуйста, выберите оценку', 'warning');
+            return;
         }
 
-        // Загрузка и отображение комментариев
-        async function loadAndDisplayComments() {
+        const commentData = {
+            name: name,
+            text: text,
+            rating: parseInt(ratingInput.value)
+        };
+
+        const submitBtn = document.getElementById('submitBtn');
+        const originalText = submitBtn.textContent;
+        
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Отправка...';
+
+        try {
+            const result = await saveComment(commentData);
+            if (result.success) {
+                showNotification('✅ Отзыв успешно отправлен!', 'success');
+                this.reset();
+                await loadAndDisplayComments();
+                if (document.getElementById('adminPanel').style.display !== 'none') {
+                    await loadAdminData();
+                }
+            } else {
+                showNotification(`❌ Ошибка отправки отзыва: ${result.error}`, 'error');
+            }
+        } catch (error) {
+            showNotification('❌ Ошибка отправки отзыва', 'error');
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalText;
+        }
+    });
+
+    // Отображение комментариев
+    function displayComments(comments) {
+        const commentsList = document.getElementById('commentsList');
+        const loadingMessage = document.getElementById('loading-message');
+
+        if (!comments || comments.length === 0) {
+            commentsList.innerHTML = '<div style="text-align:center; padding:40px; background:white; border-radius:15px; box-shadow:0 5px 15px rgba(0,0,0,0.1);"><div style="font-size:4em; margin-bottom:20px;">💬</div><h3 style="color:#cc0066; margin-bottom:15px;">Пока нет отзывов</h3><p style="color:#5a2d4e;">Будьте первым, кто оставит отзыв о наших куклах!</p></div>';
+            loadingMessage.style.display = 'none';
+            return;
+        }
+
+        let html = '';
+        comments.forEach(comment => {
+            const date = new Date(comment.date);
+            const dateStr = date.toLocaleDateString('ru-RU', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            
+            const rating = comment.rating || 0;
+            const stars = '★'.repeat(rating) + '☆'.repeat(5 - rating);
+            
+            html += `
+                <div class="comment-card" style="background:#fff; padding:20px; border-radius:10px; box-shadow:0 4px 8px rgba(0,0,0,0.1); border-left:5px solid #ff69b4;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; border-bottom:1px dashed #ffc0cb; padding-bottom:5px;">
+                        <span style="font-size:1.1rem; font-weight:bold; color:#8b008b;">${escapeHtml(comment.name)}</span>
+                        <span style="color:gold; font-size:1.1rem;">${stars}</span>
+                    </div>
+                    <div style="margin-top:10px; line-height:1.6; color:#5a2d4e;">${escapeHtml(comment.text)}</div>
+                    <div style="margin-top:10px; color:#aaa; font-size:0.9rem;">${dateStr}</div>
+                </div>
+            `;
+        });
+
+        commentsList.innerHTML = html;
+        loadingMessage.style.display = 'none';
+    }
+
+    // Загрузка и отображение комментариев
+    async function loadAndDisplayComments() {
+        try {
             const comments = await loadComments();
             displayComments(comments);
+        } catch (error) {
+            console.error('Ошибка загрузки комментариев:', error);
+            showNotification('❌ Ошибка загрузки отзывов', 'error');
         }
+    }
 
-        // Утилиты
-        function escapeHtml(str) {
-            const div = document.createElement('div');
-            div.textContent = str;
-            return div.innerHTML;
-        }
+    // Утилиты
+    function escapeHtml(str) {
+        if (!str) return '';
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
 
-        function showNotification(message, type = 'info') {
-            // Удаляем существующие уведомления
-            document.querySelectorAll('.notification').forEach(notification => {
+    function showNotification(message, type = 'info') {
+        // Удаляем существующие уведомления
+        document.querySelectorAll('.notification').forEach(notification => {
+            notification.remove();
+        });
+
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        notification.textContent = message;
+        document.body.appendChild(notification);
+
+        setTimeout(() => {
+            if (notification.parentNode) {
                 notification.remove();
-            });
-
-            const notification = document.createElement('div');
-            notification.className = `notification ${type}`;
-            notification.textContent = message;
-            document.body.appendChild(notification);
-
-            setTimeout(() => {
-                if (notification.parentNode) {
-                    notification.remove();
-                }
-            }, 5000);
-        }
-
-        // Админ-панель
-        document.getElementById('loginBtn').addEventListener('click', function() {
-            const password = document.getElementById('adminPassword').value;
-            if (password === '1488') {
-                localStorage.setItem('adminAuthenticated', 'true');
-                showAdminPanel();
-            } else {
-                showNotification('❌ Неверный пароль!', 'error');
             }
-        });
+        }, 5000);
+    }
 
-        document.getElementById('logoutBtn').addEventListener('click', function() {
-            localStorage.removeItem('adminAuthenticated');
+    // Админ-панель
+    document.getElementById('loginBtn').addEventListener('click', function() {
+        const password = document.getElementById('adminPassword').value;
+        if (password === '1488') {
+            localStorage.setItem('adminAuthenticated', 'true');
+            showAdminPanel();
+        } else {
+            showNotification('❌ Неверный пароль!', 'error');
+        }
+    });
+
+    document.getElementById('logoutBtn').addEventListener('click', function() {
+        localStorage.removeItem('adminAuthenticated');
+        hideAdminPanel();
+    });
+
+    document.getElementById('refreshBtn').addEventListener('click', function() {
+        loadAdminData();
+    });
+
+    document.getElementById('syncYandexBtn').addEventListener('click', async function() {
+        const btn = this;
+        const originalText = btn.textContent;
+        
+        btn.disabled = true;
+        btn.textContent = 'Синхронизация...';
+        
+        try {
+            const result = await syncData();
+            if (result.success) {
+                showNotification('✅ Данные синхронизированы с Яндекс.Диском', 'success');
+                await loadAdminData();
+            } else {
+                showNotification(`❌ Ошибка синхронизации: ${result.error}`, 'error');
+            }
+        } catch (error) {
+            showNotification('❌ Ошибка синхронизации', 'error');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = originalText;
+        }
+    });
+
+    function checkAdminAuth() {
+        if (localStorage.getItem('adminAuthenticated') === 'true') {
+            showAdminPanel();
+        } else {
             hideAdminPanel();
-        });
-
-        document.getElementById('refreshBtn').addEventListener('click', function() {
-            loadAdminData();
-        });
-
-        document.getElementById('syncYandexBtn').addEventListener('click', async function() {
-            const btn = this;
-            btn.disabled = true;
-            btn.textContent = 'Синхронизация...';
-            
-            try {
-                const result = await syncData();
-                if (result.success) {
-                    showNotification('✅ Данные синхронизированы с Яндекс.Диском', 'success');
-                    await loadAdminData();
-                } else {
-                    showNotification('❌ Ошибка синхронизации', 'error');
-                }
-            } catch (error) {
-                showNotification('❌ Ошибка синхронизации', 'error');
-            } finally {
-                btn.disabled = false;
-                btn.textContent = 'Синхронизировать с Яндекс.Диском';
-            }
-        });
-
-        function checkAdminAuth() {
-            if (localStorage.getItem('adminAuthenticated') === 'true') {
-                showAdminPanel();
-            } else {
-                hideAdminPanel();
-            }
         }
+    }
 
-        async function showAdminPanel() {
-            document.getElementById('adminLogin').style.display = 'none';
-            document.getElementById('adminPanel').style.display = 'block';
-            await loadAdminData();
-            updateMegaStatus();
-        }
+    async function showAdminPanel() {
+        document.getElementById('adminLogin').style.display = 'none';
+        document.getElementById('adminPanel').style.display = 'block';
+        await loadAdminData();
+        updateMegaStatus();
+    }
 
-        function hideAdminPanel() {
-            document.getElementById('adminLogin').style.display = 'block';
-            document.getElementById('adminPanel').style.display = 'none';
-            document.getElementById('adminPassword').value = '';
-        }
+    function hideAdminPanel() {
+        document.getElementById('adminLogin').style.display = 'block';
+        document.getElementById('adminPanel').style.display = 'none';
+        document.getElementById('adminPassword').value = '';
+    }
 
-        async function loadAdminData() {
+    async function loadAdminData() {
+        try {
             // Загрузка заказов
             const orders = await loadOrders();
             const ordersTableBody = document.getElementById('ordersTableBody');
@@ -695,9 +751,14 @@
                     commentsTableBody.appendChild(row);
                 });
             }
+        } catch (error) {
+            console.error('Ошибка загрузки админ-данных:', error);
+            showNotification('❌ Ошибка загрузки данных', 'error');
         }
+    }
 
-        async function updateMegaStatus() {
+    async function updateMegaStatus() {
+        try {
             const orders = await loadOrders();
             const comments = await loadComments();
             const megaStatus = document.getElementById('megaStatus');
@@ -706,16 +767,36 @@
             megaStatus.style.backgroundColor = '#d4edda';
             megaStatus.style.color = '#155724';
             megaStatus.style.border = '2px solid #28a745';
+        } catch (error) {
+            const megaStatus = document.getElementById('megaStatus');
+            megaStatus.innerHTML = '❌ Ошибка загрузки статуса';
+            megaStatus.style.backgroundColor = '#f8d7da';
+            megaStatus.style.color = '#721c24';
         }
+    }
 
-        // Инициализация при загрузке страницы
-        document.addEventListener('DOMContentLoaded', async function() {
-            // Загружаем и отображаем комментарии
-            await loadAndDisplayComments();
-            
-            // Инициализируем админ-панель
-            loadAdminData();
-        });
-    </script>
+    // Инициализация при загрузке страницы
+    document.addEventListener('DOMContentLoaded', async function() {
+        console.log('Сайт загружен, инициализация...');
+        
+        // Загружаем и отображаем комментарии
+        await loadAndDisplayComments();
+        
+        // Инициализируем админ-панель
+        loadAdminData();
+        
+        // Проверяем доступность API
+        try {
+            const testResponse = await fetch(`${API_BASE_URL}/api/comments`);
+            if (testResponse.ok) {
+                console.log('✅ API доступен');
+            } else {
+                console.warn('⚠️ API недоступен');
+            }
+        } catch (error) {
+            console.error('❌ API недоступен:', error);
+        }
+    });
+</script>
 </body>
 </html>
