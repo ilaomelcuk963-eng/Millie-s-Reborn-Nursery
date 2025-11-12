@@ -519,63 +519,117 @@
 
             return commentData.id;
         }
+// Конфигурация API
+    const API_BASE_URL = window.location.origin;
 
-        // Загрузка комментариев
-        async function loadComments() {
-            // Пробуем загрузить с Яндекс.Диска
-            const data = await loadFromYandexDisk();
-            const yandexComments = data.comments || [];
-
-            // Загружаем из localStorage
-            const localComments = JSON.parse(localStorage.getItem('dollComments') || '[]');
-
-            // Объединяем и убираем дубликаты
-            const allComments = [...yandexComments, ...localComments];
-            const uniqueComments = allComments.filter((comment, index, self) => 
-                index === self.findIndex(c => c.id === comment.id)
-            );
-
-            // Сортируем по дате (новые first)
-            uniqueComments.sort((a, b) => new Date(b.date) - new Date(a.date));
-
-            return uniqueComments;
+    // Функции для работы с API
+    async function apiRequest(endpoint, options = {}) {
+        try {
+            const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...options.headers
+                },
+                ...options
+            });
+            return await response.json();
+        } catch (error) {
+            console.error('Ошибка API запроса:', error);
+            return { success: false, error: error.message };
         }
+    }
 
-        // Загрузка заказов
-        async function loadOrders() {
-            const data = await loadFromYandexDisk();
-            const yandexOrders = data.orders || [];
-            const localOrders = JSON.parse(localStorage.getItem('dollOrders') || '[]');
+    // Сохранение заказа
+    async function saveOrder(orderData) {
+        return await apiRequest('/api/orders', {
+            method: 'POST',
+            body: JSON.stringify(orderData)
+        });
+    }
 
-            const allOrders = [...yandexOrders, ...localOrders];
-            const uniqueOrders = allOrders.filter((order, index, self) => 
-                index === self.findIndex(o => o.id === order.id)
-            );
+    // Сохранение комментария
+    async function saveComment(commentData) {
+        return await apiRequest('/api/comments', {
+            method: 'POST',
+            body: JSON.stringify(commentData)
+        });
+    }
 
-            uniqueOrders.sort((a, b) => new Date(b.date) - new Date(a.date));
-            return uniqueOrders;
-        }
+    // Загрузка комментариев
+    async function loadComments() {
+        const response = await apiRequest('/api/comments');
+        return Array.isArray(response) ? response : [];
+    }
 
-        // Форма заказа
-        document.getElementById('orderForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const formData = new FormData(this);
-            const orderData = {
-                name: formData.get('name'),
-                email: formData.get('email'),
-                phone: formData.get('phone'),
-                dollType: formData.get('dollType'),
-                description: formData.get('description')
-            };
+    // Загрузка заказов
+    async function loadOrders() {
+        const response = await apiRequest('/api/orders');
+        return Array.isArray(response) ? response : [];
+    }
 
-            await saveOrder(orderData);
+    // Синхронизация
+    async function syncData() {
+        return await apiRequest('/api/sync', { method: 'POST' });
+    }
+
+    // Форма заказа
+    document.getElementById('orderForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        const orderData = {
+            name: formData.get('name'),
+            email: formData.get('email'),
+            phone: formData.get('phone'),
+            dollType: formData.get('dollType'),
+            description: formData.get('description')
+        };
+
+        const result = await saveOrder(orderData);
+        if (result.success) {
             showNotification('✅ Ваш заказ отправлен! Мы свяжемся с вами в ближайшее время.', 'success');
             this.reset();
-        });
+            await loadAdminData();
+        } else {
+            showNotification('❌ Ошибка отправки заказа', 'error');
+        }
+    });
 
-        // Форма комментариев
-        document.getElementById('commentsForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
+    // Форма комментариев
+    document.getElementById('commentsForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const commentData = {
+            name: document.getElementById('commentName').value.trim(),
+            text: document.getElementById('commentText').value.trim(),
+            rating: document.querySelector('input[name="rating"]:checked').value
+        };
+
+        if (!commentData.name || !commentData.text) {
+            showNotification('⚠️ Пожалуйста, заполните все поля', 'warning');
+            return;
+        }
+
+        const submitBtn = document.getElementById('submitBtn');
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Отправка...';
+
+        try {
+            const result = await saveComment(commentData);
+            if (result.success) {
+                showNotification('✅ Отзыв успешно отправлен!', 'success');
+                this.reset();
+                await displayComments(await loadComments());
+            } else {
+                showNotification('❌ Ошибка отправки отзыва', 'error');
+            }
+        } catch (error) {
+            showNotification('❌ Ошибка отправки отзыва', 'error');
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Отправить отзыв';
+        }
+    });
+
             
             const commentData = {
                 name: document.getElementById('commentName').value.trim(),
