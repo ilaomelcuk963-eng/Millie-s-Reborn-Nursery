@@ -9,10 +9,11 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = Flask(__name__)
-CORS(app)
+CORS(app)  # Добавляем CORS поддержку
 
 # Конфигурация Яндекс.Диска
 YANDEX_DISK_TOKEN = "y0__xDK_b6HCBjblgMg-t6diRWhjiVtinXJTPA2alYj4QGwhdV5kg"
+YANDEX_API_URL = "https://cloud-api.yandex.net/v1/disk/resources"
 DATA_FILE_PATH = "data.json"
 
 class YandexDiskManager:
@@ -26,7 +27,10 @@ class YandexDiskManager:
             if method == 'GET':
                 response = requests.get(url, headers=headers)
             elif method == 'PUT':
-                response = requests.put(url, headers=headers, json=data)
+                if isinstance(data, (dict, list)):
+                    response = requests.put(url, headers=headers, json=data)
+                else:
+                    response = requests.put(url, headers=headers, data=data)
             return response
         except Exception as e:
             print(f"Ошибка запроса к Яндекс.Диску: {e}")
@@ -43,7 +47,9 @@ class YandexDiskManager:
                 upload_href = response.json().get('href')
                 if upload_href:
                     # Загружаем данные
-                    put_response = requests.put(upload_href, json=data)
+                    put_response = requests.put(upload_href, 
+                                              json=data,
+                                              headers={'Content-Type': 'application/json'})
                     return put_response.status_code == 201
             return False
         except Exception as e:
@@ -105,7 +111,7 @@ def create_order():
         return '', 200
         
     try:
-        order_data = request.get_json()
+        order_data = request.json
         if not order_data:
             return jsonify({"success": False, "error": "No data provided"}), 400
             
@@ -115,7 +121,6 @@ def create_order():
         
         # Загружаем текущие данные
         data = get_local_data()
-        data["orders"] = data.get("orders", [])
         data["orders"].append(order_data)
         
         # Сохраняем обновленные данные
@@ -134,7 +139,7 @@ def create_comment():
         return '', 200
         
     try:
-        comment_data = request.get_json()
+        comment_data = request.json
         if not comment_data:
             return jsonify({"success": False, "error": "No data provided"}), 400
             
@@ -144,7 +149,6 @@ def create_comment():
         
         # Загружаем текущие данные
         data = get_local_data()
-        data["comments"] = data.get("comments", [])
         data["comments"].append(comment_data)
         
         # Сохраняем обновленные данные
@@ -187,17 +191,23 @@ def sync():
         yandex_data = yandex_disk.load_data()
         
         # Объединяем данные
-        all_orders = local_data.get("orders", []) + yandex_data.get("orders", [])
-        all_comments = local_data.get("comments", []) + yandex_data.get("comments", [])
+        merged_data = {
+            "orders": local_data.get("orders", []) + yandex_data.get("orders", []),
+            "comments": local_data.get("comments", []) + yandex_data.get("comments", [])
+        }
         
         # Убираем дубликаты по ID
-        orders_dict = {order["id"]: order for order in all_orders}
-        comments_dict = {comment["id"]: comment for comment in all_comments}
-        
-        merged_data = {
-            "orders": list(orders_dict.values()),
-            "comments": list(comments_dict.values())
-        }
+        def remove_duplicates(items):
+            seen = set()
+            unique = []
+            for item in items:
+                if item["id"] not in seen:
+                    seen.add(item["id"])
+                    unique.append(item)
+            return unique
+            
+        merged_data["orders"] = remove_duplicates(merged_data["orders"])
+        merged_data["comments"] = remove_duplicates(merged_data["comments"])
         
         # Сохраняем объединенные данные
         save_local_data(merged_data)
@@ -229,11 +239,4 @@ if __name__ == '__main__':
     except Exception as e:
         print(f"❌ Ошибка подключения к Яндекс.Диску: {e}")
     
-    # Создаем начальный data.json если его нет
-    if not os.path.exists('data.json'):
-        with open('data.json', 'w', encoding='utf-8') as f:
-            json.dump({"orders": [], "comments": []}, f, ensure_ascii=False, indent=2)
-        print("✅ Создан начальный файл data.json")
-    
-    print("🚀 Запуск сервера на http://localhost:5000")
     app.run(debug=True, host='0.0.0.0', port=5000)
