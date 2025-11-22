@@ -20,6 +20,51 @@
             overflow-x: hidden;
         }
 
+        /* Прелоадер */
+        .preloader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #ffe6f2;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+
+        .preloader.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .preloader-content {
+            text-align: center;
+        }
+
+        .preloader-spinner {
+            width: 80px;
+            height: 80px;
+            border: 5px solid rgba(255, 153, 204, 0.3);
+            border-top: 5px solid #ff66a3;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        .preloader-text {
+            color: #cc0066;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
         /* Анимации */
         @keyframes fadeIn {
             from { opacity: 0; }
@@ -35,6 +80,12 @@
             0% { transform: scale(1); }
             50% { transform: scale(1.05); }
             100% { transform: scale(1); }
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
         }
 
         /* Фон с размытым сердечком */
@@ -154,6 +205,49 @@
             text-align: center;
         }
 
+        /* Кнопка галереи */
+        .gallery-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #ff66a3, #cc0066);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(204, 0, 102, 0.3);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            margin-top: 30px;
+        }
+
+        .gallery-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(204, 0, 102, 0.4);
+            animation: bounce 1s;
+        }
+
+        .gallery-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 5px 10px rgba(204, 0, 102, 0.3);
+        }
+
+        .gallery-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .gallery-btn:hover::before {
+            left: 100%;
+        }
+
         /* Галерея */
         .gallery {
             display: grid;
@@ -234,6 +328,14 @@
     </style>
 </head>
 <body>
+    <!-- Прелоадер -->
+    <div class="preloader" id="preloader">
+        <div class="preloader-content">
+            <div class="preloader-spinner"></div>
+            <div class="preloader-text">Загрузка кукольного мира...</div>
+        </div>
+    </div>
+
     <div class="background"></div>
 
     <!-- Навигация -->
@@ -257,8 +359,8 @@
             <h1>Millie's Reborn Nursery</h1>
             <p>Создаем уникальные куклы ручной работы, которые станут любимыми игрушками ваших детей или ценными коллекционными предметами.</p>
             <p>Каждая кукла создается с любовью и вниманием к деталям, чтобы подарить радость и волшебство.</p>
-            <div style="text-align: center; margin-top: 30px;">
-                <button id="exploreBtn">Исследовать галерею</button>
+            <div style="text-align: center;">
+                <button class="gallery-btn" id="exploreBtn">Исследовать галерею</button>
             </div>
         </section>
         <!-- Галерея -->
@@ -312,6 +414,14 @@
     </footer>
 
     <script>
+        // Прелоадер
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                const preloader = document.getElementById('preloader');
+                preloader.classList.add('hidden');
+            }, 1500); // Время загрузки можно регулировать
+        });
+
         // Навигация
         document.getElementById('navToggle').addEventListener('click', function() {
             document.getElementById('navigation').classList.toggle('active');
